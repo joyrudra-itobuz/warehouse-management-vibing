@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Button, Form, Input } from "antd";
+import { Button, Form, Input, message } from "antd";
 import Link from "next/link";
 
 import AuthFormFooter from "@/components/auth/common/auth-form-footer/auth-form-footer";
@@ -28,18 +28,25 @@ export default function LoginForm() {
   const onFinish = async (values: LoginDto) => {
     try {
       const response = await loginMutation.mutateAsync(values);
+      const accessToken =
+        response.data?.accessToken ?? response.data?.access_token;
+      const refreshToken =
+        response.data?.refreshToken ?? response.data?.refresh_token;
 
-      if (response.accessToken && response.refreshToken) {
-        setAuthSession(
-          {
-            accessToken: response.accessToken,
-            refreshToken: response.refreshToken,
-          },
-          response.user ?? null,
-        );
+      if (!accessToken || !refreshToken) {
+        message.error("Login response did not include token data.");
+        return;
       }
 
-      router.push("/dashboard");
+      setAuthSession(
+        {
+          accessToken,
+          refreshToken,
+        },
+        response.data?.user ?? null,
+      );
+
+      router.replace("/dashboard");
     } catch {
       return;
     }

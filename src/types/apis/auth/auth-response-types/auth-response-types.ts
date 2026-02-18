@@ -1,5 +1,7 @@
-export type AuthApiMessageResponse = {
-  message?: string;
+export type AuthApiResponseEnvelope<TData = undefined> = {
+  message: string;
+  success: boolean;
+  data: TData;
 };
 
 export type AuthUserResponse = {
@@ -9,17 +11,23 @@ export type AuthUserResponse = {
   role?: string;
 };
 
-export type LoginResponse = AuthApiMessageResponse & {
+export type LoginResponseData = {
   accessToken?: string;
   refreshToken?: string;
+  access_token?: string;
+  refresh_token?: string;
   user?: AuthUserResponse;
 };
 
-export type SignupResponse = AuthApiMessageResponse & {
+export type SignupResponseData = {
   email?: string;
   role?: string;
 };
 
-export type SendOtpResponse = AuthApiMessageResponse;
+export type LoginResponse = AuthApiResponseEnvelope<LoginResponseData>;
 
-export type ForgotPasswordResponse = AuthApiMessageResponse;
+export type SignupResponse = AuthApiResponseEnvelope<SignupResponseData>;
+
+export type SendOtpResponse = AuthApiResponseEnvelope<null>;
+
+export type ForgotPasswordResponse = AuthApiResponseEnvelope<null>;
