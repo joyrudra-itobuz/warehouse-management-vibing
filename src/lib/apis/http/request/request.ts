@@ -22,6 +22,14 @@ const getApiUrl = (path: string) => {
   return `${API_BASE_URL}${path}`;
 };
 
+const getAccessToken = () => {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  return localStorage.getItem("access_token");
+};
+
 const parseErrorMessage = (errorBody: unknown) => {
   if (!errorBody || typeof errorBody !== "object") {
     return "Request failed. Please try again.";
@@ -46,10 +54,13 @@ const request = async <TResponse, TPayload = unknown>({
   payload,
   headers,
 }: RequestOptions<TPayload>): Promise<TResponse> => {
+  const accessToken = getAccessToken();
+
   const response = await fetch(getApiUrl(path), {
     method,
     headers: {
       "Content-Type": "application/json",
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
       ...headers,
     },
     body: payload === undefined ? undefined : JSON.stringify(payload),
