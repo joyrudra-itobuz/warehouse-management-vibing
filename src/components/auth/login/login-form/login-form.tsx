@@ -9,7 +9,7 @@ import { authRoutes } from "@/lib/apis/routes";
 import type { LoginDto } from "@/lib/apis/swagger/auth-types";
 import type { LoginResponse } from "@/types/apis/auth/auth-response-types/auth-response-types";
 
-const LoginForm = () => {
+export default function LoginForm() {
   const loginMutation = useAppMutation<LoginResponse, Error, LoginDto>({
     mutationKey: ["auth", "login"],
     mutationFn: authRoutes.login,
@@ -73,6 +73,4 @@ const LoginForm = () => {
       />
     </Form>
   );
-};
-
-export default LoginForm;
+}
