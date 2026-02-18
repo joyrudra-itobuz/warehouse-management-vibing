@@ -71,7 +71,7 @@ export default function ForgotPasswordForm() {
     };
 
     await forgotPasswordMutation.mutateAsync(payload);
-    router.push("/login");
+    router.push("/auth/login");
   }
 
   return (
@@ -182,7 +182,7 @@ export default function ForgotPasswordForm() {
         <Typography.Text type="secondary">
           Remembered your password?
         </Typography.Text>
-        <Link href="/login">Back to login</Link>
+        <Link href="/auth/login">Back to login</Link>
       </Space>
     </Form>
   );

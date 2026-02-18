@@ -10,6 +10,32 @@ Conventions
 - Client-side token store: use `src/lib/auth` for helpers (get/set token, refresh, attach header).
 - Environment variables: `NEXT_PUBLIC_API_BASE` for base URL; server-only secrets stored in `.env`.
 
+Route structure
+
+- Auth pages live under `src/app/auth/*`.
+  - `src/app/auth/layout.tsx`
+  - `src/app/auth/login/page.tsx`
+  - `src/app/auth/sign-up/page.tsx`
+  - `src/app/auth/forgot-password/page.tsx`
+- Protected pages live under `src/app/(protected)/*`.
+  - `src/app/(protected)/layout.tsx`
+  - `src/app/(protected)/dashboard/page.tsx`
+
+State management (Zustand)
+
+- Auth session state is stored in Zustand with persistence to localStorage.
+- On successful login, store:
+  - `accessToken`
+  - `refreshToken`
+  - `user` info
+- Store location:
+  - `src/stores/auth/auth-store/auth-store.ts`
+
+Access rules
+
+- Authenticated users cannot access auth routes (`/auth/*`) and are redirected to `/dashboard`.
+- Unauthenticated users cannot access protected routes (e.g. `/dashboard`) and are redirected to `/auth/login`.
+
 Notes
 
 - If implementing silent refresh, document flow here and add endpoints used for refresh.

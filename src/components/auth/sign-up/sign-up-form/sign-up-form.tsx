@@ -73,7 +73,7 @@ const SignUpForm = () => {
       <AuthFormFooter
         question="Already have an account?"
         actionText="Log in"
-        actionHref="/login"
+        actionHref="/auth/login"
       />
     </Form>
   );

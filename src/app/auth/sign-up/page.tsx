@@ -1,7 +1,5 @@
 import SignUpPageContent from "@/components/auth/sign-up/sign-up-page-content/sign-up-page-content";
 
-const SignUpPage = () => {
+export default function SignUpPage() {
   return <SignUpPageContent />;
-};
-
-export default SignUpPage;
+}

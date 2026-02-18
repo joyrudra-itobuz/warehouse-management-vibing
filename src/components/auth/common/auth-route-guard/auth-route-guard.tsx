@@ -3,10 +3,15 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Flex, Spin } from "antd";
+import type { ReactNode } from "react";
 
 import { useAuthStore } from "@/stores/auth";
 
-export default function HomePage() {
+type AuthRouteGuardProps = {
+  children: ReactNode;
+};
+
+export default function AuthRouteGuard({ children }: AuthRouteGuardProps) {
   const router = useRouter();
   const hasHydrated = useAuthStore((state) => state.hasHydrated);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -18,15 +23,20 @@ export default function HomePage() {
 
     if (isAuthenticated) {
       router.replace("/dashboard");
-      return;
     }
-
-    router.replace("/auth/login");
   }, [hasHydrated, isAuthenticated, router]);
 
-  return (
-    <Flex align="center" justify="center" style={{ minHeight: "100vh" }}>
-      <Spin size="large" />
-    </Flex>
-  );
+  if (!hasHydrated) {
+    return (
+      <Flex align="center" justify="center" style={{ minHeight: "100vh" }}>
+        <Spin size="large" />
+      </Flex>
+    );
+  }
+
+  if (isAuthenticated) {
+    return null;
+  }
+
+  return <>{children}</>;
 }
