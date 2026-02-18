@@ -13,3 +13,20 @@ Conventions
 Notes
 
 - If implementing silent refresh, document flow here and add endpoints used for refresh.
+
+Forgot password flow (OTP based)
+
+- Step 1: User enters email and calls `POST /user/auth/send-otp`.
+  - Request DTO (`SendOtpDto`):
+    - `email: string`
+- Step 2: User enters OTP + new password and calls `POST /user/auth/forgot-password`.
+  - Request DTO (`ForgotPasswordDto`):
+    - `email: string`
+    - `otp: string`
+    - `password: string`
+
+Implementation rules
+
+- Auth pages must use Ant Design components and Ant Design form validation.
+- OTP input must use Ant Design `Input.OTP`.
+- API requests should use route modules (`src/lib/apis/routes`) and React Query wrapper hooks.

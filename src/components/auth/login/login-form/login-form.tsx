@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { Button, Form, Input } from "antd";
+import Link from "next/link";
 
 import AuthFormFooter from "@/components/auth/common/auth-form-footer/auth-form-footer";
 import useAppMutation from "@/hooks/common/use-app-mutation/use-app-mutation";
@@ -64,6 +65,12 @@ export default function LoginForm() {
         >
           Log in
         </Button>
+      </Form.Item>
+
+      <Form.Item
+        style={{ marginTop: -4, marginBottom: 12, textAlign: "right" }}
+      >
+        <Link href="/forgot-password">Reset password?</Link>
       </Form.Item>
 
       <AuthFormFooter

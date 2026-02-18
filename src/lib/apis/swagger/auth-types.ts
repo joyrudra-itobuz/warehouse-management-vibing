@@ -10,6 +10,16 @@ export type SignupDto = {
   email: string;
 };
 
+export type SendOtpDto = {
+  email: string;
+};
+
+export type ForgotPasswordDto = {
+  email: string;
+  otp: string;
+  password: string;
+};
+
 export type ApiErrorShape = {
   message?: string | string[];
 };

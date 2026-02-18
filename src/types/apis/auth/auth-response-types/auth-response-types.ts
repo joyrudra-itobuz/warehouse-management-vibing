@@ -19,3 +19,7 @@ export type SignupResponse = AuthApiMessageResponse & {
   email?: string;
   role?: string;
 };
+
+export type SendOtpResponse = AuthApiMessageResponse;
+
+export type ForgotPasswordResponse = AuthApiMessageResponse;
