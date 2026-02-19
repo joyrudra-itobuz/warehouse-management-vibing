@@ -2,6 +2,7 @@
 
 import { Layout, Menu } from "antd";
 import type { MenuProps } from "antd";
+import { useRouter } from "next/navigation";
 
 const { Sider } = Layout;
 
@@ -9,17 +10,24 @@ type DashboardSidebarProps = {
   selectedKey: string;
 };
 
+const sidebarRoutes: Record<string, string> = {
+  dashboard: "/dashboard",
+  inventory: "/inventory",
+};
+
 const menuItems: MenuProps["items"] = [
   { key: "dashboard", label: "Dashboard" },
   { key: "inventory", label: "Inventory" },
-  { key: "shipment", label: "Shipment" },
-  { key: "customers", label: "Customers" },
-  { key: "report", label: "Report" },
+  { key: "shipment", label: "Shipment", disabled: true },
+  { key: "customers", label: "Customers", disabled: true },
+  { key: "report", label: "Report", disabled: true },
 ];
 
 export default function DashboardSidebar({
   selectedKey,
 }: DashboardSidebarProps) {
+  const router = useRouter();
+
   return (
     <Sider
       width={240}
@@ -35,6 +43,13 @@ export default function DashboardSidebar({
         theme="dark"
         selectedKeys={[selectedKey]}
         items={menuItems}
+        onClick={function onClickMenuItem({ key }) {
+          const route = sidebarRoutes[String(key)];
+
+          if (route) {
+            router.push(route);
+          }
+        }}
         style={{ borderInlineEnd: "none", paddingTop: 8 }}
       />
     </Sider>

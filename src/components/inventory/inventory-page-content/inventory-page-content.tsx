@@ -3,23 +3,33 @@
 import { useMemo, useState } from "react";
 import { Empty, Flex, Layout, Spin, Tabs } from "antd";
 import type { TabsProps } from "antd";
+import { useQueryClient } from "@tanstack/react-query";
 
 import DashboardSidebar from "@/components/dashboard/layout/dashboard-sidebar/dashboard-sidebar";
 import InventoryTopbar from "@/components/inventory/layout/inventory-topbar/inventory-topbar";
-import InventoryProductDetailsModal from "@/components/inventory/modals/inventory-product-details-modal/inventory-product-details-modal";
+import InventoryProductDetailsModal, {
+  type InventoryProductFormValues,
+} from "@/components/inventory/modals/inventory-product-details-modal/inventory-product-details-modal";
 import InventoryProductsTable from "@/components/inventory/tables/inventory-products-table/inventory-products-table";
+import useAppMutation from "@/hooks/common/use-app-mutation/use-app-mutation";
 import useAppQuery from "@/hooks/common/use-app-query/use-app-query";
 import { inventoryRoutes } from "@/lib/apis/routes";
 import type {
   InventoryApiEnvelope,
   InventoryProductDetails,
   InventoryProductRow,
+  InventoryProductUpdatePayload,
   WarehouseItem,
 } from "@/types/apis/inventory/inventory-response-types/inventory-response-types";
 
 const { Content } = Layout;
 
 type InventoryTabKey = "all" | "warehouse" | "archived";
+
+type UpdateProductMutationVariables = {
+  productId: string;
+  payload: InventoryProductUpdatePayload;
+};
 
 function toArray(input: unknown): unknown[] {
   if (Array.isArray(input)) {
@@ -165,6 +175,7 @@ function extractProductDetails(data: unknown): InventoryProductDetails | null {
     description: String(source.description ?? ""),
     price: toNumber(source.price),
     markup: toNumber(source.markup),
+    isArchived: Boolean(source.isArchived ?? record.isArchived),
     quantity: toNumber(record.quantity),
     limit: toNumber(record.limit),
     status: Boolean(source.isArchived ?? record.isArchived)
@@ -175,6 +186,7 @@ function extractProductDetails(data: unknown): InventoryProductDetails | null {
 }
 
 export default function InventoryPageContent() {
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<InventoryTabKey>("all");
   const [searchValue, setSearchValue] = useState("");
   const [selectedWarehouseId, setSelectedWarehouseId] = useState<string | null>(
@@ -252,6 +264,77 @@ export default function InventoryPageContent() {
       errorMessage: "Unable to load product details.",
     },
   );
+
+  const updateProductMutation = useAppMutation<
+    InventoryApiEnvelope<unknown>,
+    Error,
+    UpdateProductMutationVariables
+  >({
+    mutationKey: ["inventory", "update-product"],
+    mutationFn: function mutationFn(variables) {
+      return inventoryRoutes.updateProduct(
+        variables.productId,
+        variables.payload,
+      );
+    },
+    options: {
+      successMessage: "Product updated successfully.",
+      onSuccess: function onSuccess() {
+        queryClient.invalidateQueries({
+          queryKey: ["inventory", "all-products"],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["inventory", "archived-products"],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["inventory", "warehouse-products"],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["inventory", "product-details"],
+        });
+      },
+    },
+  });
+
+  const handleSubmitProduct = function handleSubmitProduct(
+    values: InventoryProductFormValues,
+  ) {
+    if (!selectedProductId) {
+      return;
+    }
+
+    const productImage = (values.productImages ?? "")
+      .split(/\n|,/)
+      .map(function mapImage(value) {
+        return value.trim();
+      })
+      .filter(function filterImage(value) {
+        return value.length > 0;
+      });
+
+    const payload: InventoryProductUpdatePayload = {
+      id: selectedProductId,
+      name: values.name,
+      category: values.category,
+      description: values.description,
+      price: toNumber(values.price),
+      markup: toNumber(values.markup),
+      isArchived: Boolean(values.isArchived),
+      productImage,
+    };
+
+    updateProductMutation.mutate(
+      {
+        productId: selectedProductId,
+        payload,
+      },
+      {
+        onSuccess: function onSuccess() {
+          setSelectedProductId(null);
+        },
+      },
+    );
+  };
 
   if (warehousesQuery.isLoading) {
     return (
@@ -349,7 +432,9 @@ export default function InventoryPageContent() {
               setSelectedProductId(null);
             }}
             loading={productDetailsQuery.isLoading}
+            submitting={updateProductMutation.isPending}
             product={selectedProductDetails}
+            onSubmit={handleSubmitProduct}
           />
         </Content>
       </Layout>

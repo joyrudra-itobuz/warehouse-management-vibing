@@ -42,8 +42,21 @@ export type InventoryProductDetails = {
   description: string;
   price: number;
   markup: number;
+  isArchived: boolean;
   quantity?: number;
   limit?: number;
   status: string;
   images: string[];
+};
+
+export type InventoryProductUpdatePayload = {
+  id: string;
+  name: string;
+  category: string;
+  description?: string;
+  productImage?: string[];
+  price: number;
+  markup?: number;
+  isArchived?: boolean;
+  createdBy?: string;
 };

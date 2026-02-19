@@ -2,6 +2,7 @@ import request from "@/lib/apis/http/request/request";
 import type {
   InventoryApiEnvelope,
   InventoryProductQueryParams,
+  InventoryProductUpdatePayload,
 } from "@/types/apis/inventory/inventory-response-types/inventory-response-types";
 
 function toQuery(params: Record<string, string | number | undefined>) {
@@ -62,6 +63,17 @@ function getProductDetails(productId: string) {
   });
 }
 
+function updateProduct(
+  productId: string,
+  payload: InventoryProductUpdatePayload,
+) {
+  return request<InventoryApiEnvelope<unknown>, InventoryProductUpdatePayload>({
+    path: `/product/${productId}`,
+    method: "PUT",
+    payload,
+  });
+}
+
 function getWarehouses() {
   return request<InventoryApiEnvelope<unknown>>({
     path: "/warehouse/get-warehouses",
@@ -74,6 +86,7 @@ const inventoryRoutes = {
   getArchivedProducts,
   getWarehouseProducts,
   getProductDetails,
+  updateProduct,
   getWarehouses,
 };
 
