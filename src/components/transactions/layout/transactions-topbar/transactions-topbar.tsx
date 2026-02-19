@@ -96,12 +96,6 @@ export default function TransactionsTopbar({
           Reset
         </Button>
       </Space>
-
-      {(startDate || endDate) && (
-        <Text type="secondary">
-          Date filter: {startDate || "-"} → {endDate || "-"}
-        </Text>
-      )}
     </Flex>
   );
 }
