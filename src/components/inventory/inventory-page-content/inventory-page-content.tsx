@@ -1,11 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Empty, Flex, Layout, Spin, Tabs } from "antd";
+import { Empty, Flex, Spin, Tabs } from "antd";
 import type { TabsProps } from "antd";
 import { useQueryClient } from "@tanstack/react-query";
 
-import DashboardSidebar from "@/components/dashboard/layout/dashboard-sidebar/dashboard-sidebar";
 import InventoryTopbar from "@/components/inventory/layout/inventory-topbar/inventory-topbar";
 import InventoryProductDetailsModal, {
   type InventoryProductFormValues,
@@ -21,8 +20,6 @@ import type {
   InventoryProductUpdatePayload,
   WarehouseItem,
 } from "@/types/apis/inventory/inventory-response-types/inventory-response-types";
-
-const { Content } = Layout;
 
 type InventoryTabKey = "all" | "warehouse" | "archived";
 
@@ -405,39 +402,34 @@ export default function InventoryPageContent() {
   ];
 
   return (
-    <Layout style={{ minHeight: "100vh" }}>
-      <DashboardSidebar selectedKey="inventory" />
-      <Layout>
-        <Content style={{ padding: 24 }}>
-          <InventoryTopbar
-            searchValue={searchValue}
-            onChangeSearch={setSearchValue}
-            selectedWarehouseId={activeWarehouseId}
-            onChangeWarehouse={setSelectedWarehouseId}
-            warehouses={warehouses}
-            showWarehouseSelector={activeTab === "warehouse"}
-          />
+    <>
+      <InventoryTopbar
+        searchValue={searchValue}
+        onChangeSearch={setSearchValue}
+        selectedWarehouseId={activeWarehouseId}
+        onChangeWarehouse={setSelectedWarehouseId}
+        warehouses={warehouses}
+        showWarehouseSelector={activeTab === "warehouse"}
+      />
 
-          <Tabs
-            activeKey={activeTab}
-            onChange={function onChange(tabKey) {
-              setActiveTab(tabKey as InventoryTabKey);
-            }}
-            items={tabItems}
-          />
+      <Tabs
+        activeKey={activeTab}
+        onChange={function onChange(tabKey) {
+          setActiveTab(tabKey as InventoryTabKey);
+        }}
+        items={tabItems}
+      />
 
-          <InventoryProductDetailsModal
-            open={Boolean(selectedProductId)}
-            onClose={function onCloseModal() {
-              setSelectedProductId(null);
-            }}
-            loading={productDetailsQuery.isLoading}
-            submitting={updateProductMutation.isPending}
-            product={selectedProductDetails}
-            onSubmit={handleSubmitProduct}
-          />
-        </Content>
-      </Layout>
-    </Layout>
+      <InventoryProductDetailsModal
+        open={Boolean(selectedProductId)}
+        onClose={function onCloseModal() {
+          setSelectedProductId(null);
+        }}
+        loading={productDetailsQuery.isLoading}
+        submitting={updateProductMutation.isPending}
+        product={selectedProductDetails}
+        onSubmit={handleSubmitProduct}
+      />
+    </>
   );
 }

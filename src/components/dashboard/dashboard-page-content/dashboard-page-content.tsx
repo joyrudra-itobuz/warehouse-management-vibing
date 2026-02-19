@@ -1,12 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Col, Empty, Flex, Layout, Row, Spin } from "antd";
+import { Col, Empty, Flex, Row, Spin } from "antd";
 
 import DashboardCategoryChart from "@/components/dashboard/charts/dashboard-category-chart/dashboard-category-chart";
 import DashboardComparisonChart from "@/components/dashboard/charts/dashboard-comparison-chart/dashboard-comparison-chart";
 import DashboardIssuesChart from "@/components/dashboard/charts/dashboard-issues-chart/dashboard-issues-chart";
-import DashboardSidebar from "@/components/dashboard/layout/dashboard-sidebar/dashboard-sidebar";
 import DashboardTopbar from "@/components/dashboard/layout/dashboard-topbar/dashboard-topbar";
 import DashboardStatCard from "@/components/dashboard/widgets/dashboard-stat-card/dashboard-stat-card";
 import DashboardLowStockTable from "@/components/dashboard/tables/dashboard-low-stock-table/dashboard-low-stock-table";
@@ -20,8 +19,6 @@ import type {
   DashboardTableRow,
   WarehouseItem,
 } from "@/types/apis/dashboard/dashboard-response-types/dashboard-response-types";
-
-const { Content } = Layout;
 
 function toArray(input: unknown): unknown[] {
   if (Array.isArray(input)) {
@@ -195,55 +192,53 @@ function extractInventoryCategoryChartData(
 }
 
 function extractRows(data: unknown): DashboardTableRow[] {
-  return toArray(data)
-    .map(function mapRow(item, index) {
-      if (!item || typeof item !== "object") {
-        return null;
-      }
+  return toArray(data).reduce<DashboardTableRow[]>(function reduceRows(
+    rows,
+    item,
+    index,
+  ) {
+    if (!item || typeof item !== "object") {
+      return rows;
+    }
 
-      const record = item as Record<string, unknown>;
+    const record = item as Record<string, unknown>;
 
-      return {
-        id: String(
-          record.id ?? record._id ?? record.productId ?? `row-${index}`,
-        ),
-        name: String(
-          record.name ?? record.productName ?? `Product ${index + 1}`,
-        ),
-        quantity: toNumber(record.quantity ?? record.qty ?? record.stock),
-        amount: toNumber(record.amount ?? record.price ?? record.totalSales),
-        status: String(record.status ?? "Low"),
-      };
-    })
-    .filter(function isRow(value): value is DashboardTableRow {
-      return value !== null;
+    rows.push({
+      id: String(record.id ?? record._id ?? record.productId ?? `row-${index}`),
+      name: String(record.name ?? record.productName ?? `Product ${index + 1}`),
+      quantity: toNumber(record.quantity ?? record.qty ?? record.stock),
+      amount: toNumber(record.amount ?? record.price ?? record.totalSales),
+      status: String(record.status ?? "Low"),
     });
+
+    return rows;
+  }, []);
 }
 
 function extractTopSellingRows(data: unknown): DashboardTableRow[] {
-  return toArray(data)
-    .map(function mapTopSelling(item, index) {
-      if (!item || typeof item !== "object") {
-        return null;
-      }
+  return toArray(data).reduce<DashboardTableRow[]>(function reduceTopRows(
+    rows,
+    item,
+    index,
+  ) {
+    if (!item || typeof item !== "object") {
+      return rows;
+    }
 
-      const record = item as Record<string, unknown>;
+    const record = item as Record<string, unknown>;
 
-      return {
-        id: String(
-          record.productId ?? record.id ?? record._id ?? `top-${index}`,
-        ),
-        name: String(
-          record.productName ?? record.name ?? `Product ${index + 1}`,
-        ),
-        quantity: toNumber(record.totalSoldQuantity ?? record.quantity),
-        amount: toNumber(record.totalSalesAmount ?? record.amount),
-        status: String(record.category ?? record.status ?? "Top"),
-      };
-    })
-    .filter(function isRow(value): value is DashboardTableRow {
-      return value !== null;
+    rows.push({
+      id: String(record.productId ?? record.id ?? record._id ?? `top-${index}`),
+      name: String(
+        record.productName ?? record.name ?? `Product ${index + 1}`,
+      ),
+      quantity: toNumber(record.totalSoldQuantity ?? record.quantity),
+      amount: toNumber(record.totalSalesAmount ?? record.amount),
+      status: String(record.category ?? record.status ?? "Top"),
     });
+
+    return rows;
+  }, []);
 }
 
 function extractIssueSeriesData(
@@ -445,73 +440,68 @@ export default function DashboardPageContent() {
   const lowStockRows = extractRows(lowStockQuery.data?.data);
 
   return (
-    <Layout style={{ minHeight: "100vh" }}>
-      <DashboardSidebar selectedKey="dashboard" />
-      <Layout>
-        <Content style={{ padding: 24 }}>
-          <DashboardTopbar
-            warehouses={warehouses}
-            selectedWarehouseId={activeWarehouseId}
-            onChangeWarehouse={setSelectedWarehouseId}
+    <>
+      <DashboardTopbar
+        warehouses={warehouses}
+        selectedWarehouseId={activeWarehouseId}
+        onChangeWarehouse={setSelectedWarehouseId}
+      />
+
+      <Row gutter={[16, 16]}>
+        <Col xs={24} md={12} xl={6}>
+          <DashboardStatCard
+            title="Total Sales"
+            value={`$${stats.totalSales.toLocaleString()}`}
+            trend={`${stats.saleQuantity} qty`}
+            highlighted
           />
+        </Col>
+        <Col xs={24} md={12} xl={6}>
+          <DashboardStatCard
+            title="Total Purchase"
+            value={`$${stats.totalPurchase.toLocaleString()}`}
+            trend={`${stats.purchaseQuantity} qty`}
+          />
+        </Col>
+        <Col xs={24} md={12} xl={6}>
+          <DashboardStatCard
+            title="Inventory Quantity"
+            value={stats.inventoryQuantity}
+            trend="Current stock"
+          />
+        </Col>
+        <Col xs={24} md={12} xl={6}>
+          <DashboardStatCard
+            title="Today's Shipment"
+            value={stats.todayShipmentQuantity}
+            trend="Today"
+          />
+        </Col>
+      </Row>
 
-          <Row gutter={[16, 16]}>
-            <Col xs={24} md={12} xl={6}>
-              <DashboardStatCard
-                title="Total Sales"
-                value={`$${stats.totalSales.toLocaleString()}`}
-                trend={`${stats.saleQuantity} qty`}
-                highlighted
-              />
-            </Col>
-            <Col xs={24} md={12} xl={6}>
-              <DashboardStatCard
-                title="Total Purchase"
-                value={`$${stats.totalPurchase.toLocaleString()}`}
-                trend={`${stats.purchaseQuantity} qty`}
-              />
-            </Col>
-            <Col xs={24} md={12} xl={6}>
-              <DashboardStatCard
-                title="Inventory Quantity"
-                value={stats.inventoryQuantity}
-                trend="Current stock"
-              />
-            </Col>
-            <Col xs={24} md={12} xl={6}>
-              <DashboardStatCard
-                title="Today's Shipment"
-                value={stats.todayShipmentQuantity}
-                trend="Today"
-              />
-            </Col>
-          </Row>
-
-          <Row gutter={[16, 16]} style={{ marginTop: 12 }}>
-            <Col xs={24} xl={14}>
-              <DashboardCategoryChart data={categoryData} />
-            </Col>
-            <Col xs={24} xl={10}>
-              <DashboardComparisonChart data={comparisonData} />
-            </Col>
-            <Col xs={24} xl={14}>
-              <DashboardIssuesChart data={issueSeriesData} />
-            </Col>
-            <Col xs={24} xl={14}>
-              <DashboardTopProductsTable
-                data={topSellingRows}
-                loading={topSellingQuery.isLoading}
-              />
-            </Col>
-            <Col xs={24} xl={10}>
-              <DashboardLowStockTable
-                data={lowStockRows}
-                loading={lowStockQuery.isLoading}
-              />
-            </Col>
-          </Row>
-        </Content>
-      </Layout>
-    </Layout>
+      <Row gutter={[16, 16]} style={{ marginTop: 12 }}>
+        <Col xs={24} xl={14}>
+          <DashboardCategoryChart data={categoryData} />
+        </Col>
+        <Col xs={24} xl={10}>
+          <DashboardComparisonChart data={comparisonData} />
+        </Col>
+        <Col xs={24} xl={14}>
+          <DashboardIssuesChart data={issueSeriesData} />
+        </Col>
+        <Col xs={24} xl={14}>
+          <DashboardTopProductsTable
+            data={topSellingRows}
+            loading={topSellingQuery.isLoading}
+          />
+        </Col>
+        <Col xs={24} xl={10}>
+          <DashboardLowStockTable
+            data={lowStockRows}
+            loading={lowStockQuery.isLoading}
+          />
+        </Col>
+      </Row>
+    </>
   );
 }

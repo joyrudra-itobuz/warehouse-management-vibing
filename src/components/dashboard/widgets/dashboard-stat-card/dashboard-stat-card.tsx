@@ -1,6 +1,6 @@
 "use client";
 
-import { Card, Statistic, Tag, Typography } from "antd";
+import { Card, Statistic, Tag, Typography, theme } from "antd";
 
 const { Text } = Typography;
 
@@ -17,17 +17,27 @@ export default function DashboardStatCard({
   trend,
   highlighted,
 }: DashboardStatCardProps) {
+  const { token } = theme.useToken();
+  const isDarkMode = token.colorBgBase === "#090909";
+  const highlightedBackground = isDarkMode ? "#1E1E1E" : "#111111";
+
   return (
     <Card
       bordered={false}
       style={{
         borderRadius: 16,
-        background: highlighted ? "#171A23" : "#FFFFFF",
+        background: highlighted
+          ? highlightedBackground
+          : token.colorBgContainer,
       }}
       bodyStyle={{ padding: 18 }}
     >
       <Text
-        style={{ color: highlighted ? "rgba(255,255,255,0.72)" : undefined }}
+        style={{
+          color: highlighted
+            ? "rgba(255,255,255,0.82)"
+            : token.colorTextSecondary,
+        }}
       >
         {title}
       </Text>
@@ -35,7 +45,7 @@ export default function DashboardStatCard({
         value={value}
         valueStyle={{
           marginTop: 8,
-          color: highlighted ? "#FFFFFF" : undefined,
+          color: highlighted ? "#FFFFFF" : token.colorText,
           fontSize: 30,
           fontWeight: 700,
         }}

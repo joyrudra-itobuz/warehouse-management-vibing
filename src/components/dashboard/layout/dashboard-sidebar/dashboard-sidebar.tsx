@@ -2,7 +2,7 @@
 
 import { Button, Layout, Menu } from "antd";
 import type { MenuProps } from "antd";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { FiLogOut } from "react-icons/fi";
 
 import ThemeModeSwitcher from "@/components/common/theme-mode-switcher/theme-mode-switcher";
@@ -11,7 +11,7 @@ import { useAuthStore } from "@/stores/auth";
 const { Sider } = Layout;
 
 type DashboardSidebarProps = {
-  selectedKey: string;
+  selectedKey?: string;
 };
 
 const sidebarRoutes: Record<string, string> = {
@@ -32,7 +32,16 @@ export default function DashboardSidebar({
   selectedKey,
 }: DashboardSidebarProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const clearAuthSession = useAuthStore((state) => state.clearAuthSession);
+
+  const resolvedSelectedKey =
+    selectedKey ??
+    (pathname.startsWith("/inventory")
+      ? "inventory"
+      : pathname.startsWith("/transactions")
+        ? "transactions"
+        : "dashboard");
 
   const handleLogout = function handleLogout() {
     clearAuthSession();
@@ -44,7 +53,14 @@ export default function DashboardSidebar({
       width={240}
       breakpoint="lg"
       collapsedWidth={72}
-      style={{ minHeight: "100vh" }}
+      style={{
+        minHeight: "100vh",
+        height: "100vh",
+        position: "sticky",
+        top: 0,
+        insetInlineStart: 0,
+        overflow: "hidden",
+      }}
     >
       <div
         style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}
@@ -57,7 +73,7 @@ export default function DashboardSidebar({
         <Menu
           mode="inline"
           theme="dark"
-          selectedKeys={[selectedKey]}
+          selectedKeys={[resolvedSelectedKey]}
           items={menuItems}
           onClick={function onClickMenuItem({ key }) {
             const route = sidebarRoutes[String(key)];

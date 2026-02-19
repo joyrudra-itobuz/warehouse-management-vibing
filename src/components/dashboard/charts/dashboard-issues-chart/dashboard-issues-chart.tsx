@@ -1,7 +1,7 @@
 "use client";
 
 import { Column } from "@ant-design/charts";
-import { Card, Empty, Typography } from "antd";
+import { Card, Empty, Typography, theme } from "antd";
 
 import { dashboardPalette } from "@/theme";
 import type { DashboardSeriesChartPoint } from "@/types/apis/dashboard/dashboard-response-types/dashboard-response-types";
@@ -15,6 +15,9 @@ type DashboardIssuesChartProps = {
 export default function DashboardIssuesChart({
   data,
 }: DashboardIssuesChartProps) {
+  const { token } = theme.useToken();
+  const isDarkMode = token.colorBgBase === "#090909";
+
   return (
     <Card bordered={false} style={{ borderRadius: 16 }}>
       <Text strong>Cancelled vs Adjusted Products</Text>
@@ -31,8 +34,18 @@ export default function DashboardIssuesChart({
           seriesField="series"
           group
           color={[dashboardPalette.error, dashboardPalette.warning]}
-          xAxis={{ label: { autoRotate: false } }}
-          yAxis={{ grid: { line: { style: { stroke: "#E9EDF3" } } } }}
+          xAxis={{
+            label: {
+              autoRotate: false,
+              style: { fill: token.colorTextSecondary },
+            },
+          }}
+          yAxis={{
+            label: { style: { fill: token.colorTextSecondary } },
+            grid: { line: { style: { stroke: token.colorBorder } } },
+          }}
+          legend={{ itemName: { style: { fill: token.colorTextSecondary } } }}
+          theme={isDarkMode ? "classicDark" : "classic"}
           marginTop={10}
         />
       )}

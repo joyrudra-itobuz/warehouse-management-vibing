@@ -1,9 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Empty, Layout } from "antd";
+import { Empty } from "antd";
 
-import DashboardSidebar from "@/components/dashboard/layout/dashboard-sidebar/dashboard-sidebar";
 import TransactionsTopbar from "@/components/transactions/layout/transactions-topbar/transactions-topbar";
 import TransactionDetailsModal from "@/components/transactions/modals/transaction-details-modal/transaction-details-modal";
 import TransactionsTable from "@/components/transactions/tables/transactions-table/transactions-table";
@@ -15,8 +14,6 @@ import type {
   TransactionRow,
   TransactionsApiEnvelope,
 } from "@/types/apis/transactions/transaction-response-types/transaction-response-types";
-
-const { Content } = Layout;
 
 function toArray(input: unknown): unknown[] {
   if (Array.isArray(input)) {
@@ -265,66 +262,61 @@ export default function TransactionsPageContent() {
   );
 
   return (
-    <Layout style={{ minHeight: "100vh" }}>
-      <DashboardSidebar selectedKey="transactions" />
-      <Layout>
-        <Content style={{ padding: 24 }}>
-          <TransactionsTopbar
-            typeValue={type}
-            statusValue={status}
-            startDate={startDate}
-            endDate={endDate}
-            availableStatuses={availableStatuses}
-            onChangeType={function onChangeType(value) {
-              setPage(1);
-              setType(value);
-            }}
-            onChangeStatus={function onChangeStatus(value) {
-              setPage(1);
-              setStatus(value);
-            }}
-            onChangeDateRange={function onChangeDateRange(start, end) {
-              setPage(1);
-              setStartDate(start);
-              setEndDate(end);
-            }}
-            onResetFilters={function onResetFilters() {
-              setPage(1);
-              setType(undefined);
-              setStatus(undefined);
-              setStartDate(undefined);
-              setEndDate(undefined);
-            }}
-          />
+    <>
+      <TransactionsTopbar
+        typeValue={type}
+        statusValue={status}
+        startDate={startDate}
+        endDate={endDate}
+        availableStatuses={availableStatuses}
+        onChangeType={function onChangeType(value) {
+          setPage(1);
+          setType(value);
+        }}
+        onChangeStatus={function onChangeStatus(value) {
+          setPage(1);
+          setStatus(value);
+        }}
+        onChangeDateRange={function onChangeDateRange(start, end) {
+          setPage(1);
+          setStartDate(start);
+          setEndDate(end);
+        }}
+        onResetFilters={function onResetFilters() {
+          setPage(1);
+          setType(undefined);
+          setStatus(undefined);
+          setStartDate(undefined);
+          setEndDate(undefined);
+        }}
+      />
 
-          {rows.length === 0 && !transactionsQuery.isLoading ? (
-            <Empty description="No transactions found" />
-          ) : (
-            <TransactionsTable
-              data={rows}
-              loading={transactionsQuery.isLoading}
-              page={pagination.page}
-              limit={pagination.limit}
-              total={pagination.total}
-              onChangePage={function onChangePage(nextPage, nextLimit) {
-                setPage(nextPage);
-                setLimit(nextLimit);
-              }}
-              onRowClick={function onRowClick(transaction) {
-                setSelectedTransaction(transaction.details);
-              }}
-            />
-          )}
+      {rows.length === 0 && !transactionsQuery.isLoading ? (
+        <Empty description="No transactions found" />
+      ) : (
+        <TransactionsTable
+          data={rows}
+          loading={transactionsQuery.isLoading}
+          page={pagination.page}
+          limit={pagination.limit}
+          total={pagination.total}
+          onChangePage={function onChangePage(nextPage, nextLimit) {
+            setPage(nextPage);
+            setLimit(nextLimit);
+          }}
+          onRowClick={function onRowClick(transaction) {
+            setSelectedTransaction(transaction.details);
+          }}
+        />
+      )}
 
-          <TransactionDetailsModal
-            open={Boolean(selectedTransaction)}
-            onClose={function onCloseModal() {
-              setSelectedTransaction(null);
-            }}
-            transaction={selectedTransaction}
-          />
-        </Content>
-      </Layout>
-    </Layout>
+      <TransactionDetailsModal
+        open={Boolean(selectedTransaction)}
+        onClose={function onCloseModal() {
+          setSelectedTransaction(null);
+        }}
+        transaction={selectedTransaction}
+      />
+    </>
   );
 }
