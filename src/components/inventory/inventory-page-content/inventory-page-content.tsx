@@ -3,12 +3,13 @@
 import { useMemo, useState } from "react";
 import { Empty, Flex, Spin, Tabs } from "antd";
 import type { TabsProps } from "antd";
+import type { UploadFile } from "antd/es/upload/interface";
 import { useQueryClient } from "@tanstack/react-query";
 
 import InventoryTopbar from "@/components/inventory/layout/inventory-topbar/inventory-topbar";
 import InventoryProductDetailsModal, {
   type InventoryProductFormValues,
-} from "@/components/inventory/modals/inventory-product-details-modal/inventory-product-details-modal";
+} from "../modals/inventory-product-details-modal/inventory-product-details-modal";
 import InventoryProductsTable from "@/components/inventory/tables/inventory-products-table/inventory-products-table";
 import useAppMutation from "@/hooks/common/use-app-mutation/use-app-mutation";
 import useAppQuery from "@/hooks/common/use-app-query/use-app-query";
@@ -72,6 +73,55 @@ function toNumber(value: unknown): number {
   }
 
   return 0;
+}
+
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise(function resolveFileToDataUrl(resolve, reject) {
+    const reader = new FileReader();
+
+    reader.onload = function onLoad() {
+      if (typeof reader.result === "string") {
+        resolve(reader.result);
+        return;
+      }
+
+      resolve("");
+    };
+
+    reader.onerror = function onError() {
+      reject(new Error("Unable to read file"));
+    };
+
+    reader.readAsDataURL(file);
+  });
+}
+
+async function normalizeProductImages(fileList: UploadFile[] | undefined) {
+  if (!fileList || fileList.length === 0) {
+    return [] as string[];
+  }
+
+  const normalized = await Promise.all(
+    fileList.map(async function mapFile(file) {
+      if (typeof file.url === "string" && file.url.trim()) {
+        return file.url;
+      }
+
+      if (typeof file.thumbUrl === "string" && file.thumbUrl.trim()) {
+        return file.thumbUrl;
+      }
+
+      if (file.originFileObj instanceof File) {
+        return fileToDataUrl(file.originFileObj);
+      }
+
+      return "";
+    }),
+  );
+
+  return normalized.filter(function filterImage(value) {
+    return value.length > 0;
+  });
 }
 
 function extractWarehouses(data: unknown): WarehouseItem[] {
@@ -293,21 +343,14 @@ export default function InventoryPageContent() {
     },
   });
 
-  const handleSubmitProduct = function handleSubmitProduct(
+  const handleSubmitProduct = async function handleSubmitProduct(
     values: InventoryProductFormValues,
   ) {
     if (!selectedProductId) {
       return;
     }
 
-    const productImage = (values.productImages ?? "")
-      .split(/\n|,/)
-      .map(function mapImage(value) {
-        return value.trim();
-      })
-      .filter(function filterImage(value) {
-        return value.length > 0;
-      });
+    const productImage = await normalizeProductImages(values.productImages);
 
     const payload: InventoryProductUpdatePayload = {
       id: selectedProductId,

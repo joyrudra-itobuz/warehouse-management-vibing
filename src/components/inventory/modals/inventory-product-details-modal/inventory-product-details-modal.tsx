@@ -1,17 +1,24 @@
 "use client";
 
 import {
+  Col,
+  Descriptions,
   Empty,
   Form,
   Image,
   Input,
   InputNumber,
   Modal,
+  Row,
   Space,
   Switch,
+  Tabs,
+  Tag,
   Typography,
+  Upload,
 } from "antd";
-import { useEffect } from "react";
+import type { UploadFile } from "antd/es/upload/interface";
+import { useEffect, useState } from "react";
 
 import type { InventoryProductDetails } from "@/types/apis/inventory/inventory-response-types/inventory-response-types";
 
@@ -25,7 +32,7 @@ export type InventoryProductFormValues = {
   price: number;
   markup?: number;
   isArchived?: boolean;
-  productImages?: string;
+  productImages?: UploadFile[];
 };
 
 type InventoryProductDetailsModalProps = {
@@ -46,6 +53,7 @@ export default function InventoryProductDetailsModal({
   onSubmit,
 }: InventoryProductDetailsModalProps) {
   const [form] = Form.useForm<InventoryProductFormValues>();
+  const [tabKey, setTabKey] = useState("preview");
 
   useEffect(
     function syncFormValues() {
@@ -60,125 +68,245 @@ export default function InventoryProductDetailsModal({
         price: product.price,
         markup: product.markup,
         isArchived: product.isArchived,
-        productImages: product.images.join("\n"),
+        productImages: product.images.map(function mapImage(image, index) {
+          return {
+            uid: `existing-${index}`,
+            name: `image-${index + 1}`,
+            status: "done",
+            url: image,
+          } as UploadFile;
+        }),
       });
     },
     [form, open, product],
   );
 
+  const normFile = function normFile(event: { fileList?: UploadFile[] }) {
+    return event?.fileList ?? [];
+  };
+
   return (
     <Modal
       open={open}
-      onCancel={onClose}
+      onCancel={function onCancel() {
+        setTabKey("preview");
+        onClose();
+      }}
       title={product?.name ?? "Product Details"}
       okText="Save"
       onOk={function onOkClick() {
         form.submit();
       }}
-      width={760}
+      okButtonProps={{
+        style: { display: tabKey === "edit" ? "inline-flex" : "none" },
+      }}
+      width={860}
       destroyOnClose
       confirmLoading={submitting}
     >
       {!product ? (
         <Empty description="No product details available" />
       ) : (
-        <Space direction="vertical" size={16} style={{ width: "100%" }}>
-          {product.images.length > 0 ? (
-            <Image.PreviewGroup>
-              <Space size={12} wrap>
-                {product.images.map(function mapImage(image) {
-                  return (
-                    <Image
-                      key={image}
-                      src={image}
-                      alt={product.name}
-                      width={92}
-                      height={92}
-                      style={{ borderRadius: 12, objectFit: "cover" }}
-                    />
-                  );
-                })}
-              </Space>
-            </Image.PreviewGroup>
-          ) : null}
+        <Form<InventoryProductFormValues>
+          form={form}
+          layout="vertical"
+          onFinish={onSubmit}
+          disabled={loading || submitting}
+        >
+          <Tabs
+            activeKey={tabKey}
+            onChange={setTabKey}
+            items={[
+              {
+                key: "preview",
+                label: "Preview",
+                children: (
+                  <Row gutter={[16, 16]} align="top">
+                    <Col xs={24} md={14}>
+                      <Descriptions
+                        bordered
+                        column={1}
+                        size="small"
+                        labelStyle={{ width: 140 }}
+                      >
+                        <Descriptions.Item label="Name">
+                          {product.name}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Category">
+                          <Tag>{product.category}</Tag>
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Price">
+                          ${product.price.toLocaleString()}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Markup">
+                          {product.markup}%
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Status">
+                          <Text
+                            type={
+                              product.status === "Archived"
+                                ? "warning"
+                                : undefined
+                            }
+                          >
+                            {product.status}
+                          </Text>
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Quantity">
+                          {product.quantity ?? "-"}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Limit">
+                          {product.limit ?? "-"}
+                        </Descriptions.Item>
+                        <Descriptions.Item label="Description">
+                          {product.description || "-"}
+                        </Descriptions.Item>
+                      </Descriptions>
+                    </Col>
+                    <Col xs={24} md={10}>
+                      {product.images.length > 0 ? (
+                        <Image.PreviewGroup>
+                          <Space
+                            direction="vertical"
+                            size={10}
+                            style={{ width: "100%" }}
+                          >
+                            {product.images.map(function mapImage(image) {
+                              return (
+                                <Image
+                                  key={image}
+                                  src={image}
+                                  alt={product.name}
+                                  width="100%"
+                                  style={{
+                                    borderRadius: 12,
+                                    objectFit: "cover",
+                                  }}
+                                />
+                              );
+                            })}
+                          </Space>
+                        </Image.PreviewGroup>
+                      ) : (
+                        <Empty description="No product image" />
+                      )}
+                    </Col>
+                  </Row>
+                ),
+              },
+              {
+                key: "edit",
+                label: "Edit",
+                children: (
+                  <Row gutter={[12, 4]}>
+                    <Col xs={24} md={12}>
+                      <Form.Item
+                        label="Name"
+                        name="name"
+                        rules={[
+                          {
+                            required: true,
+                            message: "Product name is required",
+                          },
+                        ]}
+                      >
+                        <Input placeholder="Product name" />
+                      </Form.Item>
+                    </Col>
 
-          <Form<InventoryProductFormValues>
-            form={form}
-            layout="vertical"
-            onFinish={onSubmit}
-            disabled={loading || submitting}
-          >
-            <Form.Item
-              label="Name"
-              name="name"
-              rules={[{ required: true, message: "Product name is required" }]}
-            >
-              <Input placeholder="Product name" />
-            </Form.Item>
+                    <Col xs={24} md={12}>
+                      <Form.Item
+                        label="Category"
+                        name="category"
+                        rules={[
+                          { required: true, message: "Category is required" },
+                        ]}
+                      >
+                        <Input placeholder="Category" />
+                      </Form.Item>
+                    </Col>
 
-            <Form.Item
-              label="Category"
-              name="category"
-              rules={[{ required: true, message: "Category is required" }]}
-            >
-              <Input placeholder="Category" />
-            </Form.Item>
+                    <Col xs={24} md={12}>
+                      <Form.Item
+                        label="Price"
+                        name="price"
+                        rules={[
+                          { required: true, message: "Price is required" },
+                        ]}
+                      >
+                        <InputNumber<number>
+                          min={0}
+                          precision={2}
+                          style={{ width: "100%" }}
+                          placeholder="Price"
+                        />
+                      </Form.Item>
+                    </Col>
 
-            <Form.Item
-              label="Price"
-              name="price"
-              rules={[{ required: true, message: "Price is required" }]}
-            >
-              <InputNumber<number>
-                min={0}
-                precision={2}
-                style={{ width: "100%" }}
-                placeholder="Price"
-              />
-            </Form.Item>
+                    <Col xs={24} md={12}>
+                      <Form.Item label="Markup (%)" name="markup">
+                        <InputNumber<number>
+                          min={0}
+                          max={100}
+                          precision={2}
+                          style={{ width: "100%" }}
+                          placeholder="Markup"
+                        />
+                      </Form.Item>
+                    </Col>
 
-            <Form.Item label="Markup (%)" name="markup">
-              <InputNumber<number>
-                min={0}
-                max={100}
-                precision={2}
-                style={{ width: "100%" }}
-                placeholder="Markup"
-              />
-            </Form.Item>
+                    <Col xs={24}>
+                      <Form.Item label="Description" name="description">
+                        <TextArea rows={3} placeholder="Description" />
+                      </Form.Item>
+                    </Col>
 
-            <Form.Item label="Description" name="description">
-              <TextArea rows={3} placeholder="Description" />
-            </Form.Item>
+                    <Col xs={24}>
+                      <Form.Item
+                        label="Product Images"
+                        name="productImages"
+                        valuePropName="fileList"
+                        getValueFromEvent={normFile}
+                        extra="Upload multiple product images"
+                      >
+                        <Upload
+                          listType="picture-card"
+                          multiple
+                          beforeUpload={function blockAutoUpload() {
+                            return false;
+                          }}
+                        >
+                          + Upload
+                        </Upload>
+                      </Form.Item>
+                    </Col>
 
-            <Form.Item
-              label="Product Images (one URL per line)"
-              name="productImages"
-            >
-              <TextArea rows={3} placeholder="https://..." />
-            </Form.Item>
+                    <Col xs={24} md={12}>
+                      <Form.Item
+                        label="Archived"
+                        name="isArchived"
+                        valuePropName="checked"
+                      >
+                        <Switch />
+                      </Form.Item>
+                    </Col>
 
-            <Form.Item
-              label="Archived"
-              name="isArchived"
-              valuePropName="checked"
-            >
-              <Switch />
-            </Form.Item>
-
-            <Space size={24}>
-              <Text type="secondary">
-                Current quantity: {product.quantity ?? "-"}
-              </Text>
-              <Text type="secondary">Limit: {product.limit ?? "-"}</Text>
-              <Text
-                type={product.status === "Archived" ? "warning" : undefined}
-              >
-                Status: {product.status}
-              </Text>
-            </Space>
-          </Form>
-        </Space>
+                    <Col xs={24} md={12}>
+                      <Space size={16} wrap>
+                        <Text type="secondary">
+                          Qty: {product.quantity ?? "-"}
+                        </Text>
+                        <Text type="secondary">
+                          Limit: {product.limit ?? "-"}
+                        </Text>
+                      </Space>
+                    </Col>
+                  </Row>
+                ),
+              },
+            ]}
+          />
+        </Form>
       )}
     </Modal>
   );
