@@ -1,33 +1,32 @@
-import { Button, Space, Divider } from "antd";
+"use client";
 
-const Home = function Home() {
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Flex, Spin } from "antd";
+
+import { useAuthStore } from "@/stores/auth";
+
+export default function HomePage() {
+  const router = useRouter();
+  const hasHydrated = useAuthStore((state) => state.hasHydrated);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+
+  useEffect(() => {
+    if (!hasHydrated) {
+      return;
+    }
+
+    if (isAuthenticated) {
+      router.replace("/dashboard");
+      return;
+    }
+
+    router.replace("/auth/login");
+  }, [hasHydrated, isAuthenticated, router]);
+
   return (
-    <>
-      <section
-        style={{
-          textAlign: "center",
-          marginTop: 48,
-          marginBottom: 40,
-          padding: 100,
-        }}
-      >
-        <Space align="start">
-          <img
-            style={{ width: 40, height: 40 }}
-            src="https://gw.alipayobjects.com/zos/rmsportal/KDpgvguMpGfqaHPjicRK.svg"
-            alt="Ant Design"
-          />
-          <h2 style={{ marginBottom: 0 }}>
-            Ant Design (Without Sub Components)
-          </h2>
-        </Space>
-        <Divider style={{ marginBottom: 60 }}>Divider</Divider>
-        <Button type="primary" block href="/with-sub-components">
-          With Sub Components
-        </Button>
-      </section>
-    </>
+    <Flex align="center" justify="center" style={{ minHeight: "100vh" }}>
+      <Spin size="large" />
+    </Flex>
   );
-};
-
-export default Home;
+}

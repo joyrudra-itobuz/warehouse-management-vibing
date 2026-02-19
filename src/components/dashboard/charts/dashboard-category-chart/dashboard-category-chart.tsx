@@ -1,0 +1,62 @@
+"use client";
+
+import { Column } from "@ant-design/charts";
+import { Card, Empty, Typography, theme } from "antd";
+import type { DashboardChartPoint } from "@/types/apis/dashboard/dashboard-response-types/dashboard-response-types";
+import { dashboardPalette } from "@/theme";
+
+const { Text } = Typography;
+
+type DashboardCategoryChartProps = {
+  data: DashboardChartPoint[];
+};
+
+export default function DashboardCategoryChart({
+  data,
+}: DashboardCategoryChartProps) {
+  const { token } = theme.useToken();
+  const isDarkMode = token.colorBgBase === "#090909";
+
+  return (
+    <Card bordered={false} style={{ borderRadius: 16 }}>
+      <Text strong>Inventory by Category</Text>
+      {data.length === 0 ? (
+        <div style={{ marginTop: 16 }}>
+          <Empty description="No chart data" />
+        </div>
+      ) : (
+        <Column
+          height={340}
+          data={data}
+          xField="label"
+          yField="value"
+          colorField="label"
+          scale={{
+            color: {
+              range: [dashboardPalette.accent, "#CDEB40", "#B7D733", "#E6F69A"],
+            },
+          }}
+          style={{
+            radiusTopLeft: 8,
+            radiusTopRight: 8,
+            stroke: token.colorBgContainer,
+            lineWidth: 1,
+          }}
+          xAxis={{
+            label: {
+              autoRotate: false,
+              style: { fill: token.colorTextSecondary },
+            },
+          }}
+          yAxis={{
+            label: { style: { fill: token.colorTextSecondary } },
+            grid: { line: { style: { stroke: token.colorBorder } } },
+          }}
+          legend={{ itemName: { style: { fill: token.colorTextSecondary } } }}
+          theme={isDarkMode ? "classicDark" : "classic"}
+          marginTop={10}
+        />
+      )}
+    </Card>
+  );
+}

@@ -13,3 +13,6 @@ Conventions
 Notes
 
 - Keep component wrappers small and focused. Document props and variants in the component's module README.
+- For authentication forms (login, signup, forgot-password), use Ant Design `Form` validation and Ant controls only.
+- For OTP verification in forgot-password flow, use Ant Design `Input.OTP`.
+- Route guards and auth flow UI states should also use Ant Design components for loading and feedback (e.g., `Spin`, `message`).
