@@ -14,6 +14,7 @@ type TransactionsTableProps = {
   limit: number;
   total: number;
   onChangePage: (page: number, limit: number) => void;
+  onRowClick?: (transaction: TransactionRow) => void;
 };
 
 function getTypeColor(type: string) {
@@ -44,6 +45,11 @@ const columns: ColumnsType<TransactionRow> = [
     render: function renderType(value: string) {
       return <Tag color={getTypeColor(value)}>{value || "-"}</Tag>;
     },
+  },
+  {
+    title: "Product",
+    dataIndex: "productName",
+    key: "productName",
   },
   {
     title: "Status",
@@ -85,6 +91,7 @@ export default function TransactionsTable({
   limit,
   total,
   onChangePage,
+  onRowClick,
 }: TransactionsTableProps) {
   return (
     <Card bordered={false} style={{ borderRadius: 16 }}>
@@ -104,6 +111,14 @@ export default function TransactionsTable({
           const nextPage = pagination.current ?? 1;
           const nextLimit = pagination.pageSize ?? limit;
           onChangePage(nextPage, nextLimit);
+        }}
+        onRow={function onRow(record) {
+          return {
+            onClick: function handleClick() {
+              onRowClick?.(record);
+            },
+            style: onRowClick ? { cursor: "pointer" } : undefined,
+          };
         }}
       />
     </Card>
