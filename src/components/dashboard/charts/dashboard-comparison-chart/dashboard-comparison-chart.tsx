@@ -3,6 +3,7 @@
 import { Line } from "@ant-design/charts";
 import { Card, Empty, Typography } from "antd";
 import type { DashboardChartPoint } from "@/types/apis/dashboard/dashboard-response-types/dashboard-response-types";
+import { dashboardPalette } from "@/theme";
 
 const { Text } = Typography;
 
@@ -26,10 +27,24 @@ export default function DashboardComparisonChart({
           data={data}
           xField="label"
           yField="value"
-          color="#A9C125"
-          point={{ size: 4, shape: "circle" }}
+          color={dashboardPalette.accent}
+          point={{
+            size: 4,
+            shape: "circle",
+            style: {
+              fill: dashboardPalette.accent,
+              stroke: "#FFFFFF",
+              lineWidth: 1,
+            },
+          }}
+          area={{
+            style: {
+              fill: "l(270) 0:rgba(214,242,71,0.35) 1:rgba(214,242,71,0.02)",
+            },
+          }}
+          yAxis={{ grid: { line: { style: { stroke: "#E9EDF3" } } } }}
           smooth
-          style={{ marginTop: 10 }}
+          marginTop={10}
         />
       )}
     </Card>

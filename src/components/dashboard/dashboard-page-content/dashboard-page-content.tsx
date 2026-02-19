@@ -93,26 +93,40 @@ function extractWarehouses(data: unknown): WarehouseItem[] {
 function extractStats(data: unknown) {
   if (!data || typeof data !== "object") {
     return {
-      totalOrders: 0,
-      deliveredOrders: 0,
-      pendingOrders: 0,
-      returnRate: 0,
+      totalSales: 0,
+      totalPurchase: 0,
+      inventoryQuantity: 0,
+      todayShipmentQuantity: 0,
+      saleQuantity: 0,
+      purchaseQuantity: 0,
     };
   }
 
   const record = data as Record<string, unknown>;
+  const sales =
+    record.sales && typeof record.sales === "object"
+      ? (record.sales as Record<string, unknown>)
+      : {};
+  const purchase =
+    record.purchase && typeof record.purchase === "object"
+      ? (record.purchase as Record<string, unknown>)
+      : {};
+  const inventory =
+    record.inventory && typeof record.inventory === "object"
+      ? (record.inventory as Record<string, unknown>)
+      : {};
+  const todayShipment =
+    record.todayShipment && typeof record.todayShipment === "object"
+      ? (record.todayShipment as Record<string, unknown>)
+      : {};
 
   return {
-    totalOrders: toNumber(
-      record.totalOrders ?? record.totalTransaction ?? record.total,
-    ),
-    deliveredOrders: toNumber(
-      record.deliveredOrders ?? record.completed ?? record.success,
-    ),
-    pendingOrders: toNumber(record.pendingOrders ?? record.pending),
-    returnRate: toNumber(
-      record.returnRate ?? record.cancelledPercent ?? record.cancelledRate,
-    ),
+    totalSales: toNumber(sales.totalSales),
+    saleQuantity: toNumber(sales.saleQuantity),
+    totalPurchase: toNumber(purchase.totalPurchase),
+    purchaseQuantity: toNumber(purchase.purchaseQuantity),
+    inventoryQuantity: toNumber(inventory.totalQuantity),
+    todayShipmentQuantity: toNumber(todayShipment.quantity),
   };
 }
 
@@ -195,6 +209,32 @@ function extractRows(data: unknown): DashboardTableRow[] {
         quantity: toNumber(record.quantity ?? record.qty ?? record.stock),
         amount: toNumber(record.amount ?? record.price ?? record.totalSales),
         status: String(record.status ?? "Low"),
+      };
+    })
+    .filter(function isRow(value): value is DashboardTableRow {
+      return value !== null;
+    });
+}
+
+function extractTopSellingRows(data: unknown): DashboardTableRow[] {
+  return toArray(data)
+    .map(function mapTopSelling(item, index) {
+      if (!item || typeof item !== "object") {
+        return null;
+      }
+
+      const record = item as Record<string, unknown>;
+
+      return {
+        id: String(
+          record.productId ?? record.id ?? record._id ?? `top-${index}`,
+        ),
+        name: String(
+          record.productName ?? record.name ?? `Product ${index + 1}`,
+        ),
+        quantity: toNumber(record.totalSoldQuantity ?? record.quantity),
+        amount: toNumber(record.totalSalesAmount ?? record.amount),
+        status: String(record.category ?? record.status ?? "Top"),
       };
     })
     .filter(function isRow(value): value is DashboardTableRow {
@@ -311,7 +351,7 @@ export default function DashboardPageContent() {
     inventoryCategoryQuery.data?.data,
   );
   const comparisonData = extractChartData(comparisonQuery.data?.data);
-  const topSellingRows = extractRows(topSellingQuery.data?.data);
+  const topSellingRows = extractTopSellingRows(topSellingQuery.data?.data);
   const lowStockRows = extractRows(lowStockQuery.data?.data);
 
   return (
@@ -328,31 +368,31 @@ export default function DashboardPageContent() {
           <Row gutter={[16, 16]}>
             <Col xs={24} md={12} xl={6}>
               <DashboardStatCard
-                title="Total Orders"
-                value={stats.totalOrders}
-                trend="+17%"
+                title="Total Sales"
+                value={`$${stats.totalSales.toLocaleString()}`}
+                trend={`${stats.saleQuantity} qty`}
                 highlighted
               />
             </Col>
             <Col xs={24} md={12} xl={6}>
               <DashboardStatCard
-                title="Delivered"
-                value={stats.deliveredOrders}
-                trend="+7%"
+                title="Total Purchase"
+                value={`$${stats.totalPurchase.toLocaleString()}`}
+                trend={`${stats.purchaseQuantity} qty`}
               />
             </Col>
             <Col xs={24} md={12} xl={6}>
               <DashboardStatCard
-                title="Pending"
-                value={stats.pendingOrders}
-                trend="+4%"
+                title="Inventory Quantity"
+                value={stats.inventoryQuantity}
+                trend="Current stock"
               />
             </Col>
             <Col xs={24} md={12} xl={6}>
               <DashboardStatCard
-                title="Return Rate"
-                value={`${stats.returnRate}%`}
-                trend="-2%"
+                title="Today's Shipment"
+                value={stats.todayShipmentQuantity}
+                trend="Today"
               />
             </Col>
           </Row>
