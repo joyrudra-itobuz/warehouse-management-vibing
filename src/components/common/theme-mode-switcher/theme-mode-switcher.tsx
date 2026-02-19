@@ -1,72 +1,64 @@
 "use client";
 
 import { DesktopOutlined, MoonOutlined, SunOutlined } from "@ant-design/icons";
-import { Card, Segmented, Space, Typography } from "antd";
+import { Button, Space, Tooltip } from "antd";
 
-import type { ThemeMode } from "@/theme";
+import { usePreferencesStore } from "@/stores/preferences";
 
-const { Text } = Typography;
+export default function ThemeModeSwitcher() {
+  const themeMode = usePreferencesStore((state) => state.themeMode);
+  const setThemeMode = usePreferencesStore((state) => state.setThemeMode);
 
-type ThemeModeSwitcherProps = {
-  mode: ThemeMode;
-  onChangeMode: (mode: ThemeMode) => void;
-};
-
-export default function ThemeModeSwitcher({
-  mode,
-  onChangeMode,
-}: ThemeModeSwitcherProps) {
   return (
-    <div
-      style={{
-        position: "fixed",
-        right: 20,
-        bottom: 20,
-        zIndex: 1100,
-      }}
-    >
-      <Card size="small" styles={{ body: { padding: 10 } }}>
-        <Space direction="vertical" size={8}>
-          <Text type="secondary" style={{ fontSize: 12 }}>
-            Theme
-          </Text>
-          <Segmented<ThemeMode>
-            value={mode}
-            onChange={function onChange(nextValue) {
-              onChangeMode(nextValue as ThemeMode);
-            }}
-            options={[
-              {
-                label: (
-                  <Space size={6}>
-                    <SunOutlined />
-                    <span>Light</span>
-                  </Space>
-                ),
-                value: "light",
-              },
-              {
-                label: (
-                  <Space size={6}>
-                    <MoonOutlined />
-                    <span>Dark</span>
-                  </Space>
-                ),
-                value: "dark",
-              },
-              {
-                label: (
-                  <Space size={6}>
-                    <DesktopOutlined />
-                    <span>System</span>
-                  </Space>
-                ),
-                value: "system",
-              },
-            ]}
-          />
-        </Space>
-      </Card>
-    </div>
+    <Space size={4}>
+      <Tooltip title="Light">
+        <Button
+          shape="circle"
+          type="text"
+          icon={<SunOutlined />}
+          aria-label="Set light theme"
+          onClick={function onClickLight() {
+            setThemeMode("light");
+          }}
+          style={{
+            color: "rgba(255, 255, 255, 0.92)",
+            background:
+              themeMode === "light" ? "rgba(255, 255, 255, 0.18)" : undefined,
+          }}
+        />
+      </Tooltip>
+      <Tooltip title="Dark">
+        <Button
+          shape="circle"
+          type="text"
+          icon={<MoonOutlined />}
+          aria-label="Set dark theme"
+          onClick={function onClickDark() {
+            setThemeMode("dark");
+          }}
+          style={{
+            color: "rgba(255, 255, 255, 0.92)",
+            background:
+              themeMode === "dark" ? "rgba(255, 255, 255, 0.18)" : undefined,
+          }}
+        />
+      </Tooltip>
+      <Tooltip title="System">
+        <Button
+          shape="circle"
+          type="text"
+          icon={<DesktopOutlined />}
+          aria-label="Set system theme"
+          onClick={function onClickSystem() {
+            setThemeMode("system");
+          }}
+          style={{
+            color: "rgba(255, 255, 255, 0.92)",
+            background:
+              themeMode === "system" ? "rgba(255, 255, 255, 0.18)" : undefined,
+          }}
+        />
+      </Tooltip>
+    </Space>
   );
 }
