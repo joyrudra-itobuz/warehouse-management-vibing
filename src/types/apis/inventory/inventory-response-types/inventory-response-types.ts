@@ -34,3 +34,16 @@ export type InventoryProductRow = {
   price: number;
   status: string;
 };
+
+export type InventoryProductDetails = {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  price: number;
+  markup: number;
+  quantity?: number;
+  limit?: number;
+  status: string;
+  images: string[];
+};

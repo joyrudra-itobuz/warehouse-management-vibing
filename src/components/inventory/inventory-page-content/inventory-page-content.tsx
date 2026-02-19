@@ -6,11 +6,13 @@ import type { TabsProps } from "antd";
 
 import DashboardSidebar from "@/components/dashboard/layout/dashboard-sidebar/dashboard-sidebar";
 import InventoryTopbar from "@/components/inventory/layout/inventory-topbar/inventory-topbar";
+import InventoryProductDetailsModal from "@/components/inventory/modals/inventory-product-details-modal/inventory-product-details-modal";
 import InventoryProductsTable from "@/components/inventory/tables/inventory-products-table/inventory-products-table";
 import useAppQuery from "@/hooks/common/use-app-query/use-app-query";
 import { inventoryRoutes } from "@/lib/apis/routes";
 import type {
   InventoryApiEnvelope,
+  InventoryProductDetails,
   InventoryProductRow,
   WarehouseItem,
 } from "@/types/apis/inventory/inventory-response-types/inventory-response-types";
@@ -96,24 +98,38 @@ function extractInventoryProducts(data: unknown): InventoryProductRow[] {
       }
 
       const record = item as Record<string, unknown>;
+      const nestedProduct =
+        record.product && typeof record.product === "object"
+          ? (record.product as Record<string, unknown>)
+          : null;
+      const source = nestedProduct ?? record;
 
       return {
         id: String(
-          record.productId ?? record._id ?? record.id ?? `product-${index}`,
+          source._id ??
+            record.productId ??
+            record._id ??
+            record.id ??
+            `product-${index}`,
         ),
         name: String(
-          record.productName ?? record.name ?? `Product ${index + 1}`,
+          source.name ?? record.productName ?? `Product ${index + 1}`,
         ),
-        category: String(record.category ?? "Uncategorized"),
+        category: String(source.category ?? record.category ?? "Uncategorized"),
         quantity: toNumber(
           record.totalQuantity ??
             record.quantity ??
             record.stock ??
             record.totalSoldQuantity ??
-            record.availableQuantity,
+            record.availableQuantity ??
+            source.quantity,
         ),
-        price: toNumber(record.price ?? record.sellingPrice ?? 0),
-        status: Boolean(record.isArchived) ? "Archived" : "Active",
+        price: toNumber(
+          source.price ?? record.price ?? record.sellingPrice ?? 0,
+        ),
+        status: Boolean(source.isArchived ?? record.isArchived)
+          ? "Archived"
+          : "Active",
       };
     })
     .filter(function isProduct(value): value is InventoryProductRow {
@@ -121,10 +137,50 @@ function extractInventoryProducts(data: unknown): InventoryProductRow[] {
     });
 }
 
+function extractProductDetails(data: unknown): InventoryProductDetails | null {
+  if (!data || typeof data !== "object") {
+    return null;
+  }
+
+  const record = data as Record<string, unknown>;
+  const source =
+    record.product && typeof record.product === "object"
+      ? (record.product as Record<string, unknown>)
+      : record;
+
+  const images = Array.isArray(source.productImage)
+    ? source.productImage
+        .filter(function filterImage(value) {
+          return typeof value === "string";
+        })
+        .map(function mapImage(value) {
+          return String(value);
+        })
+    : [];
+
+  return {
+    id: String(source._id ?? record.productId ?? record._id ?? ""),
+    name: String(source.name ?? "Unknown Product"),
+    category: String(source.category ?? "Uncategorized"),
+    description: String(source.description ?? ""),
+    price: toNumber(source.price),
+    markup: toNumber(source.markup),
+    quantity: toNumber(record.quantity),
+    limit: toNumber(record.limit),
+    status: Boolean(source.isArchived ?? record.isArchived)
+      ? "Archived"
+      : "Active",
+    images,
+  };
+}
+
 export default function InventoryPageContent() {
   const [activeTab, setActiveTab] = useState<InventoryTabKey>("all");
   const [searchValue, setSearchValue] = useState("");
   const [selectedWarehouseId, setSelectedWarehouseId] = useState<string | null>(
+    null,
+  );
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(
     null,
   );
 
@@ -186,6 +242,17 @@ export default function InventoryPageContent() {
     errorMessage: "Unable to load warehouse products.",
   });
 
+  const productDetailsQuery = useAppQuery<InventoryApiEnvelope<unknown>, Error>(
+    {
+      queryKey: ["inventory", "product-details", selectedProductId],
+      queryFn: function queryProductDetails() {
+        return inventoryRoutes.getProductDetails(selectedProductId as string);
+      },
+      enabled: Boolean(selectedProductId),
+      errorMessage: "Unable to load product details.",
+    },
+  );
+
   if (warehousesQuery.isLoading) {
     return (
       <Flex align="center" justify="center" style={{ minHeight: "100vh" }}>
@@ -211,6 +278,9 @@ export default function InventoryPageContent() {
   const warehouseProducts = extractInventoryProducts(
     warehouseProductsQuery.data?.data,
   );
+  const selectedProductDetails = extractProductDetails(
+    productDetailsQuery.data?.data,
+  );
 
   const tabItems: TabsProps["items"] = [
     {
@@ -221,6 +291,7 @@ export default function InventoryPageContent() {
           title="All Products"
           data={allProducts}
           loading={allProductsQuery.isLoading}
+          onRowClick={setSelectedProductId}
         />
       ),
     },
@@ -232,6 +303,7 @@ export default function InventoryPageContent() {
           title="Warehouse Based Products"
           data={warehouseProducts}
           loading={warehouseProductsQuery.isLoading}
+          onRowClick={setSelectedProductId}
         />
       ),
     },
@@ -243,6 +315,7 @@ export default function InventoryPageContent() {
           title="Archived Products"
           data={archivedProducts}
           loading={archivedProductsQuery.isLoading}
+          onRowClick={setSelectedProductId}
         />
       ),
     },
@@ -268,6 +341,15 @@ export default function InventoryPageContent() {
               setActiveTab(tabKey as InventoryTabKey);
             }}
             items={tabItems}
+          />
+
+          <InventoryProductDetailsModal
+            open={Boolean(selectedProductId)}
+            onClose={function onCloseModal() {
+              setSelectedProductId(null);
+            }}
+            loading={productDetailsQuery.isLoading}
+            product={selectedProductDetails}
           />
         </Content>
       </Layout>

@@ -55,6 +55,13 @@ function getWarehouseProducts(warehouseId: string) {
   });
 }
 
+function getProductDetails(productId: string) {
+  return request<InventoryApiEnvelope<unknown>>({
+    path: `/product/qr/${productId}`,
+    method: "POST",
+  });
+}
+
 function getWarehouses() {
   return request<InventoryApiEnvelope<unknown>>({
     path: "/warehouse/get-warehouses",
@@ -66,6 +73,7 @@ const inventoryRoutes = {
   getAllProducts,
   getArchivedProducts,
   getWarehouseProducts,
+  getProductDetails,
   getWarehouses,
 };
 

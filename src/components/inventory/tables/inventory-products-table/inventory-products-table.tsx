@@ -11,6 +11,7 @@ type InventoryProductsTableProps = {
   title: string;
   data: InventoryProductRow[];
   loading: boolean;
+  onRowClick?: (productId: string) => void;
 };
 
 const columns: ColumnsType<InventoryProductRow> = [
@@ -59,6 +60,7 @@ export default function InventoryProductsTable({
   title,
   data,
   loading,
+  onRowClick,
 }: InventoryProductsTableProps) {
   return (
     <Card bordered={false} style={{ borderRadius: 16 }}>
@@ -70,6 +72,14 @@ export default function InventoryProductsTable({
         loading={loading}
         pagination={{ pageSize: 10, showSizeChanger: false }}
         style={{ marginTop: 12 }}
+        onRow={function onRow(record) {
+          return {
+            onClick: function handleClick() {
+              onRowClick?.(record.id);
+            },
+            style: onRowClick ? { cursor: "pointer" } : undefined,
+          };
+        }}
       />
     </Card>
   );
