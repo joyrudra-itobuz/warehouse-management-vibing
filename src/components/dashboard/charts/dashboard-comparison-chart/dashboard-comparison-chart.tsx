@@ -2,13 +2,13 @@
 
 import { Line } from "@ant-design/charts";
 import { Card, Empty, Typography } from "antd";
-import type { DashboardChartPoint } from "@/types/apis/dashboard/dashboard-response-types/dashboard-response-types";
+import type { DashboardSeriesChartPoint } from "@/types/apis/dashboard/dashboard-response-types/dashboard-response-types";
 import { dashboardPalette } from "@/theme";
 
 const { Text } = Typography;
 
 type DashboardComparisonChartProps = {
-  data: DashboardChartPoint[];
+  data: DashboardSeriesChartPoint[];
 };
 
 export default function DashboardComparisonChart({
@@ -16,7 +16,7 @@ export default function DashboardComparisonChart({
 }: DashboardComparisonChartProps) {
   return (
     <Card bordered={false} style={{ borderRadius: 16 }}>
-      <Text strong>Product Trend Comparison</Text>
+      <Text strong>Product Transaction (IN vs OUT)</Text>
       {data.length === 0 ? (
         <div style={{ marginTop: 16 }}>
           <Empty description="No trend data" />
@@ -27,19 +27,20 @@ export default function DashboardComparisonChart({
           data={data}
           xField="label"
           yField="value"
-          color={dashboardPalette.accent}
+          seriesField="series"
+          color={[dashboardPalette.accent, "#8FB4FF"]}
           point={{
             size: 4,
             shape: "circle",
             style: {
-              fill: dashboardPalette.accent,
+              fill: dashboardPalette.surface,
               stroke: "#FFFFFF",
               lineWidth: 1,
             },
           }}
           area={{
             style: {
-              fill: "l(270) 0:rgba(214,242,71,0.35) 1:rgba(214,242,71,0.02)",
+              fill: "l(270) 0:rgba(214,242,71,0.24) 1:rgba(214,242,71,0.02)",
             },
           }}
           yAxis={{ grid: { line: { style: { stroke: "#E9EDF3" } } } }}

@@ -5,6 +5,7 @@ import { Col, Empty, Flex, Layout, Row, Spin } from "antd";
 
 import DashboardCategoryChart from "@/components/dashboard/charts/dashboard-category-chart/dashboard-category-chart";
 import DashboardComparisonChart from "@/components/dashboard/charts/dashboard-comparison-chart/dashboard-comparison-chart";
+import DashboardIssuesChart from "@/components/dashboard/charts/dashboard-issues-chart/dashboard-issues-chart";
 import DashboardSidebar from "@/components/dashboard/layout/dashboard-sidebar/dashboard-sidebar";
 import DashboardTopbar from "@/components/dashboard/layout/dashboard-topbar/dashboard-topbar";
 import DashboardStatCard from "@/components/dashboard/widgets/dashboard-stat-card/dashboard-stat-card";
@@ -15,6 +16,7 @@ import { dashboardRoutes } from "@/lib/apis/routes";
 import type {
   DashboardApiEnvelope,
   DashboardChartPoint,
+  DashboardSeriesChartPoint,
   DashboardTableRow,
   WarehouseItem,
 } from "@/types/apis/dashboard/dashboard-response-types/dashboard-response-types";
@@ -158,6 +160,36 @@ function extractChartData(data: unknown): DashboardChartPoint[] {
     });
 }
 
+function extractProductTransactionSeries(
+  data: unknown,
+): DashboardSeriesChartPoint[] {
+  return toArray(data)
+    .flatMap(function mapTransaction(item, index) {
+      if (!item || typeof item !== "object") {
+        return [];
+      }
+
+      const record = item as Record<string, unknown>;
+      const label = String(record._id ?? record.date ?? `Day ${index + 1}`);
+
+      return [
+        {
+          label,
+          series: "IN",
+          value: toNumber(record.IN ?? record.in ?? 0),
+        },
+        {
+          label,
+          series: "OUT",
+          value: toNumber(record.OUT ?? record.out ?? 0),
+        },
+      ];
+    })
+    .filter(function isSeriesPoint(value): value is DashboardSeriesChartPoint {
+      return value !== null;
+    });
+}
+
 function extractInventoryCategoryChartData(
   data: unknown,
 ): DashboardChartPoint[] {
@@ -242,6 +274,65 @@ function extractTopSellingRows(data: unknown): DashboardTableRow[] {
     });
 }
 
+function extractIssueSeriesData(
+  cancelled: unknown,
+  adjusted: unknown,
+): DashboardSeriesChartPoint[] {
+  const cancelledSeries = toArray(cancelled).map(
+    function mapCancelled(item, index) {
+      if (!item || typeof item !== "object") {
+        return null;
+      }
+
+      const record = item as Record<string, unknown>;
+
+      return {
+        label: String(
+          record.productName ?? record.category ?? `Product ${index + 1}`,
+        ),
+        value: toNumber(record.totalCancelledQuantity ?? 0),
+        series: "Cancelled",
+      };
+    },
+  );
+
+  const adjustedSeries = toArray(adjusted).map(
+    function mapAdjusted(item, index) {
+      if (!item || typeof item !== "object") {
+        return null;
+      }
+
+      const record = item as Record<string, unknown>;
+
+      return {
+        label: String(
+          record.productName ?? record.category ?? `Product ${index + 1}`,
+        ),
+        value: toNumber(record.totalAdjustedQuantity ?? 0),
+        series: "Adjusted",
+      };
+    },
+  );
+
+  return [...cancelledSeries, ...adjustedSeries].filter(
+    function isSeriesPoint(value): value is DashboardSeriesChartPoint {
+      return value !== null;
+    },
+  );
+}
+
+function getDateRange(days: number) {
+  const endDate = new Date();
+  const startDate = new Date();
+
+  startDate.setDate(endDate.getDate() - days);
+
+  return {
+    startDate: startDate.toISOString().slice(0, 10),
+    endDate: endDate.toISOString().slice(0, 10),
+  };
+}
+
 export default function DashboardPageContent() {
   const [selectedWarehouseId, setSelectedWarehouseId] = useState<string | null>(
     null,
@@ -315,17 +406,49 @@ export default function DashboardPageContent() {
     errorMessage: "Unable to load top selling products.",
   });
 
-  const comparisonQuery = useAppQuery<DashboardApiEnvelope<unknown>, Error>({
-    queryKey: ["analytics", "comparison", selectedWarehouseId],
-    queryFn: function queryComparison() {
-      return dashboardRoutes.getProductComparisonHistory({
+  const productTransactionQuery = useAppQuery<
+    DashboardApiEnvelope<unknown>,
+    Error
+  >({
+    queryKey: ["dashboard", "product-transaction", selectedWarehouseId],
+    queryFn: function queryProductTransaction() {
+      return dashboardRoutes.getProductTransaction(
+        selectedWarehouseId as string,
+      );
+    },
+    enabled: Boolean(selectedWarehouseId),
+    errorMessage: "Unable to load product transaction chart data.",
+  });
+
+  const cancelledOrdersQuery = useAppQuery<
+    DashboardApiEnvelope<unknown>,
+    Error
+  >({
+    queryKey: ["dashboard", "cancelled-orders", selectedWarehouseId],
+    queryFn: function queryCancelledOrders() {
+      const range = getDateRange(30);
+
+      return dashboardRoutes.getCancelledOrders({
         warehouseId: selectedWarehouseId as string,
-        productA: "Backpack",
-        productB: "Hand bag",
+        limit: 6,
+        startDate: range.startDate,
+        endDate: range.endDate,
       });
     },
     enabled: Boolean(selectedWarehouseId),
-    errorMessage: "Unable to load product trend analytics.",
+    errorMessage: "Unable to load cancelled order analytics.",
+  });
+
+  const mostAdjustedQuery = useAppQuery<DashboardApiEnvelope<unknown>, Error>({
+    queryKey: ["dashboard", "most-adjusted", selectedWarehouseId],
+    queryFn: function queryMostAdjusted() {
+      return dashboardRoutes.getMostAdjustedProducts({
+        warehouseId: selectedWarehouseId as string,
+        limit: 6,
+      });
+    },
+    enabled: Boolean(selectedWarehouseId),
+    errorMessage: "Unable to load adjusted product analytics.",
   });
 
   if (warehousesQuery.isLoading) {
@@ -350,7 +473,13 @@ export default function DashboardPageContent() {
   const categoryData = extractInventoryCategoryChartData(
     inventoryCategoryQuery.data?.data,
   );
-  const comparisonData = extractChartData(comparisonQuery.data?.data);
+  const comparisonData = extractProductTransactionSeries(
+    productTransactionQuery.data?.data,
+  );
+  const issueSeriesData = extractIssueSeriesData(
+    cancelledOrdersQuery.data?.data,
+    mostAdjustedQuery.data?.data,
+  );
   const topSellingRows = extractTopSellingRows(topSellingQuery.data?.data);
   const lowStockRows = extractRows(lowStockQuery.data?.data);
 
@@ -403,6 +532,9 @@ export default function DashboardPageContent() {
             </Col>
             <Col xs={24} xl={10}>
               <DashboardComparisonChart data={comparisonData} />
+            </Col>
+            <Col xs={24} xl={14}>
+              <DashboardIssuesChart data={issueSeriesData} />
             </Col>
             <Col xs={24} xl={14}>
               <DashboardTopProductsTable

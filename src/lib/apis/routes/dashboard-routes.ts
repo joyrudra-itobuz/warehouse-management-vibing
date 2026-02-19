@@ -12,6 +12,18 @@ type ProductComparisonParams = {
   productB: string;
 };
 
+type CancelledOrdersParams = {
+  warehouseId: string;
+  startDate: string;
+  endDate: string;
+  limit: number;
+};
+
+type MostAdjustedProductsParams = {
+  warehouseId: string;
+  limit: number;
+};
+
 function toQuery(params: Record<string, string | number>) {
   const query = new URLSearchParams();
 
@@ -72,6 +84,37 @@ function getProductComparisonHistory(params: ProductComparisonParams) {
   });
 }
 
+function getProductTransaction(warehouseId: string) {
+  return request<DashboardApiEnvelope<unknown>>({
+    path: `/dashboard/get-product-transaction/${warehouseId}`,
+    method: "GET",
+  });
+}
+
+function getCancelledOrders(params: CancelledOrdersParams) {
+  const query = toQuery({
+    startDate: params.startDate,
+    endDate: params.endDate,
+    limit: params.limit,
+  });
+
+  return request<DashboardApiEnvelope<unknown>>({
+    path: `/dashboard/get-cancelled-orders/${params.warehouseId}?${query}`,
+    method: "GET",
+  });
+}
+
+function getMostAdjustedProducts(params: MostAdjustedProductsParams) {
+  const query = toQuery({
+    limit: params.limit,
+  });
+
+  return request<DashboardApiEnvelope<unknown>>({
+    path: `/dashboard/get-most-adjusted-products/${params.warehouseId}?${query}`,
+    method: "GET",
+  });
+}
+
 const dashboardRoutes = {
   getWarehouses,
   getTransactionStats,
@@ -79,6 +122,9 @@ const dashboardRoutes = {
   getTopSellingProducts,
   getInventoryByCategory,
   getProductComparisonHistory,
+  getProductTransaction,
+  getCancelledOrders,
+  getMostAdjustedProducts,
 };
 
 export default dashboardRoutes;

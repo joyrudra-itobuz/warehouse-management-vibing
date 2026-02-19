@@ -16,6 +16,12 @@ export type DashboardChartPoint = {
   value: number;
 };
 
+export type DashboardSeriesChartPoint = {
+  label: string;
+  value: number;
+  series: string;
+};
+
 export type DashboardTableRow = {
   id: string;
   name: string;
