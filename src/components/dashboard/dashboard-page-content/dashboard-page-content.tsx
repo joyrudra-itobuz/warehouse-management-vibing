@@ -420,7 +420,7 @@ export default function DashboardPageContent() {
     );
   }
 
-  if (warehouses.length === 0) {
+  if (!warehouses.length) {
     return (
       <main
         style={{ minHeight: "100vh", display: "grid", placeItems: "center" }}
