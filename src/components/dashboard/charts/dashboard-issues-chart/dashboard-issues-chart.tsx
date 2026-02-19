@@ -24,7 +24,7 @@ export default function DashboardIssuesChart({
         </div>
       ) : (
         <Column
-          height={260}
+          height={340}
           data={data}
           xField="label"
           yField="value"

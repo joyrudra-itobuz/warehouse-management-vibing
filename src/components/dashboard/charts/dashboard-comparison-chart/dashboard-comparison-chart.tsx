@@ -23,7 +23,7 @@ export default function DashboardComparisonChart({
         </div>
       ) : (
         <Line
-          height={260}
+          height={340}
           data={data}
           xField="label"
           yField="value"

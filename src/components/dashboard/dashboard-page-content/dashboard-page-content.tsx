@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { Col, Empty, Flex, Layout, Row, Spin } from "antd";
 
 import DashboardCategoryChart from "@/components/dashboard/charts/dashboard-category-chart/dashboard-category-chart";
@@ -130,34 +130,6 @@ function extractStats(data: unknown) {
     inventoryQuantity: toNumber(inventory.totalQuantity),
     todayShipmentQuantity: toNumber(todayShipment.quantity),
   };
-}
-
-function extractChartData(data: unknown): DashboardChartPoint[] {
-  return toArray(data)
-    .map(function mapChart(item, index) {
-      if (!item || typeof item !== "object") {
-        return null;
-      }
-
-      const record = item as Record<string, unknown>;
-
-      return {
-        label: String(
-          record.label ??
-            record.name ??
-            record.category ??
-            record.month ??
-            record.date ??
-            `Item ${index + 1}`,
-        ),
-        value: toNumber(
-          record.value ?? record.count ?? record.quantity ?? record.total,
-        ),
-      };
-    })
-    .filter(function isChartPoint(value): value is DashboardChartPoint {
-      return value !== null;
-    });
 }
 
 function extractProductTransactionSeries(
@@ -351,23 +323,14 @@ export default function DashboardPageContent() {
     [warehousesQuery.data],
   );
 
-  useEffect(
-    function syncWarehouseSelection() {
-      if (selectedWarehouseId || warehouses.length === 0) {
-        return;
-      }
-
-      setSelectedWarehouseId(warehouses[0].id);
-    },
-    [selectedWarehouseId, warehouses],
-  );
+  const activeWarehouseId = selectedWarehouseId ?? warehouses[0]?.id ?? null;
 
   const statsQuery = useAppQuery<DashboardApiEnvelope<unknown>, Error>({
-    queryKey: ["dashboard", "stats", selectedWarehouseId],
+    queryKey: ["dashboard", "stats", activeWarehouseId],
     queryFn: function queryStats() {
-      return dashboardRoutes.getTransactionStats(selectedWarehouseId as string);
+      return dashboardRoutes.getTransactionStats(activeWarehouseId as string);
     },
-    enabled: Boolean(selectedWarehouseId),
+    enabled: Boolean(activeWarehouseId),
     errorMessage: "Unable to load transaction stats.",
   });
 
@@ -375,34 +338,34 @@ export default function DashboardPageContent() {
     DashboardApiEnvelope<unknown>,
     Error
   >({
-    queryKey: ["dashboard", "inventory-category", selectedWarehouseId],
+    queryKey: ["dashboard", "inventory-category", activeWarehouseId],
     queryFn: function queryInventoryCategory() {
       return dashboardRoutes.getInventoryByCategory(
-        selectedWarehouseId as string,
+        activeWarehouseId as string,
       );
     },
-    enabled: Boolean(selectedWarehouseId),
+    enabled: Boolean(activeWarehouseId),
     errorMessage: "Unable to load category analytics.",
   });
 
   const lowStockQuery = useAppQuery<DashboardApiEnvelope<unknown>, Error>({
-    queryKey: ["dashboard", "low-stock", selectedWarehouseId],
+    queryKey: ["dashboard", "low-stock", activeWarehouseId],
     queryFn: function queryLowStock() {
-      return dashboardRoutes.getLowStockProducts(selectedWarehouseId as string);
+      return dashboardRoutes.getLowStockProducts(activeWarehouseId as string);
     },
-    enabled: Boolean(selectedWarehouseId),
+    enabled: Boolean(activeWarehouseId),
     errorMessage: "Unable to load low stock products.",
   });
 
   const topSellingQuery = useAppQuery<DashboardApiEnvelope<unknown>, Error>({
-    queryKey: ["dashboard", "top-selling", selectedWarehouseId],
+    queryKey: ["dashboard", "top-selling", activeWarehouseId],
     queryFn: function queryTopSelling() {
       return dashboardRoutes.getTopSellingProducts({
-        warehouseId: selectedWarehouseId as string,
+        warehouseId: activeWarehouseId as string,
         limit: 6,
       });
     },
-    enabled: Boolean(selectedWarehouseId),
+    enabled: Boolean(activeWarehouseId),
     errorMessage: "Unable to load top selling products.",
   });
 
@@ -410,13 +373,11 @@ export default function DashboardPageContent() {
     DashboardApiEnvelope<unknown>,
     Error
   >({
-    queryKey: ["dashboard", "product-transaction", selectedWarehouseId],
+    queryKey: ["dashboard", "product-transaction", activeWarehouseId],
     queryFn: function queryProductTransaction() {
-      return dashboardRoutes.getProductTransaction(
-        selectedWarehouseId as string,
-      );
+      return dashboardRoutes.getProductTransaction(activeWarehouseId as string);
     },
-    enabled: Boolean(selectedWarehouseId),
+    enabled: Boolean(activeWarehouseId),
     errorMessage: "Unable to load product transaction chart data.",
   });
 
@@ -424,30 +385,30 @@ export default function DashboardPageContent() {
     DashboardApiEnvelope<unknown>,
     Error
   >({
-    queryKey: ["dashboard", "cancelled-orders", selectedWarehouseId],
+    queryKey: ["dashboard", "cancelled-orders", activeWarehouseId],
     queryFn: function queryCancelledOrders() {
       const range = getDateRange(30);
 
       return dashboardRoutes.getCancelledOrders({
-        warehouseId: selectedWarehouseId as string,
+        warehouseId: activeWarehouseId as string,
         limit: 6,
         startDate: range.startDate,
         endDate: range.endDate,
       });
     },
-    enabled: Boolean(selectedWarehouseId),
+    enabled: Boolean(activeWarehouseId),
     errorMessage: "Unable to load cancelled order analytics.",
   });
 
   const mostAdjustedQuery = useAppQuery<DashboardApiEnvelope<unknown>, Error>({
-    queryKey: ["dashboard", "most-adjusted", selectedWarehouseId],
+    queryKey: ["dashboard", "most-adjusted", activeWarehouseId],
     queryFn: function queryMostAdjusted() {
       return dashboardRoutes.getMostAdjustedProducts({
-        warehouseId: selectedWarehouseId as string,
+        warehouseId: activeWarehouseId as string,
         limit: 6,
       });
     },
-    enabled: Boolean(selectedWarehouseId),
+    enabled: Boolean(activeWarehouseId),
     errorMessage: "Unable to load adjusted product analytics.",
   });
 
@@ -490,7 +451,7 @@ export default function DashboardPageContent() {
         <Content style={{ padding: 24 }}>
           <DashboardTopbar
             warehouses={warehouses}
-            selectedWarehouseId={selectedWarehouseId}
+            selectedWarehouseId={activeWarehouseId}
             onChangeWarehouse={setSelectedWarehouseId}
           />
 
@@ -526,7 +487,7 @@ export default function DashboardPageContent() {
             </Col>
           </Row>
 
-          <Row gutter={[16, 16]} style={{ marginTop: 6 }}>
+          <Row gutter={[16, 16]} style={{ marginTop: 12 }}>
             <Col xs={24} xl={14}>
               <DashboardCategoryChart data={categoryData} />
             </Col>
