@@ -144,6 +144,38 @@ function extractChartData(data: unknown): DashboardChartPoint[] {
     });
 }
 
+function extractInventoryCategoryChartData(
+  data: unknown,
+): DashboardChartPoint[] {
+  return toArray(data)
+    .map(function mapCategory(item, index) {
+      if (!item || typeof item !== "object") {
+        return null;
+      }
+
+      const record = item as Record<string, unknown>;
+
+      const label = String(
+        record._id ?? record.category ?? record.name ?? `Category ${index + 1}`,
+      );
+
+      const value = toNumber(
+        record.totalProducts ??
+          record.total ??
+          record.count ??
+          (Array.isArray(record.products) ? record.products.length : 0),
+      );
+
+      return {
+        label,
+        value,
+      };
+    })
+    .filter(function isChartPoint(value): value is DashboardChartPoint {
+      return value !== null;
+    });
+}
+
 function extractRows(data: unknown): DashboardTableRow[] {
   return toArray(data)
     .map(function mapRow(item, index) {
@@ -275,7 +307,9 @@ export default function DashboardPageContent() {
   }
 
   const stats = extractStats(statsQuery.data?.data);
-  const categoryData = extractChartData(inventoryCategoryQuery.data?.data);
+  const categoryData = extractInventoryCategoryChartData(
+    inventoryCategoryQuery.data?.data,
+  );
   const comparisonData = extractChartData(comparisonQuery.data?.data);
   const topSellingRows = extractRows(topSellingQuery.data?.data);
   const lowStockRows = extractRows(lowStockQuery.data?.data);
