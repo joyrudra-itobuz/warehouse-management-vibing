@@ -13,12 +13,13 @@ type DashboardSidebarProps = {
 const sidebarRoutes: Record<string, string> = {
   dashboard: "/dashboard",
   inventory: "/inventory",
+  transactions: "/transactions",
 };
 
 const menuItems: MenuProps["items"] = [
   { key: "dashboard", label: "Dashboard" },
   { key: "inventory", label: "Inventory" },
-  { key: "shipment", label: "Shipment", disabled: true },
+  { key: "transactions", label: "Transactions" },
   { key: "customers", label: "Customers", disabled: true },
   { key: "report", label: "Report", disabled: true },
 ];
