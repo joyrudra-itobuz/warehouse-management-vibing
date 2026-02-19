@@ -1,10 +1,12 @@
 "use client";
 
-import { Layout, Menu } from "antd";
+import { Button, Layout, Menu } from "antd";
 import type { MenuProps } from "antd";
 import { useRouter } from "next/navigation";
+import { FiLogOut } from "react-icons/fi";
 
 import ThemeModeSwitcher from "@/components/common/theme-mode-switcher/theme-mode-switcher";
+import { useAuthStore } from "@/stores/auth";
 
 const { Sider } = Layout;
 
@@ -30,6 +32,12 @@ export default function DashboardSidebar({
   selectedKey,
 }: DashboardSidebarProps) {
   const router = useRouter();
+  const clearAuthSession = useAuthStore((state) => state.clearAuthSession);
+
+  const handleLogout = function handleLogout() {
+    clearAuthSession();
+    router.replace("/auth/login");
+  };
 
   return (
     <Sider
@@ -63,23 +71,48 @@ export default function DashboardSidebar({
         <div
           style={{
             display: "flex",
-            justifyContent: "center",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 10,
             padding: "12px 10px 16px",
           }}
         >
-          <div
+          <Button
+            type="text"
+            icon={<FiLogOut size={16} />}
+            onClick={handleLogout}
             style={{
-              background: "rgba(255, 255, 255, 0.06)",
-              border: "1px solid rgba(255, 255, 255, 0.12)",
+              color: "rgba(255,255,255,0.9)",
+              width: "100%",
+              maxWidth: 132,
+              border: "1px solid rgba(255,255,255,0.12)",
+              background: "rgba(255,255,255,0.04)",
               borderRadius: 999,
-              padding: "6px 8px",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              minWidth: 132,
             }}
           >
-            <ThemeModeSwitcher />
+            Logout
+          </Button>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "center",
+              width: "100%",
+            }}
+          >
+            <div
+              style={{
+                background: "rgba(255, 255, 255, 0.06)",
+                border: "1px solid rgba(255, 255, 255, 0.12)",
+                borderRadius: 999,
+                padding: "6px 8px",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                minWidth: 132,
+              }}
+            >
+              <ThemeModeSwitcher />
+            </div>
           </div>
         </div>
       </div>

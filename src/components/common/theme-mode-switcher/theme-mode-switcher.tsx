@@ -1,6 +1,6 @@
 "use client";
 
-import { DesktopOutlined, MoonOutlined, SunOutlined } from "@ant-design/icons";
+import { FiMonitor, FiMoon, FiSun } from "react-icons/fi";
 import { Button, Space, Tooltip } from "antd";
 
 import { usePreferencesStore } from "@/stores/preferences";
@@ -15,7 +15,7 @@ export default function ThemeModeSwitcher() {
         <Button
           shape="circle"
           type="text"
-          icon={<SunOutlined />}
+          icon={<FiSun size={15} />}
           aria-label="Set light theme"
           onClick={function onClickLight() {
             setThemeMode("light");
@@ -31,7 +31,7 @@ export default function ThemeModeSwitcher() {
         <Button
           shape="circle"
           type="text"
-          icon={<MoonOutlined />}
+          icon={<FiMoon size={15} />}
           aria-label="Set dark theme"
           onClick={function onClickDark() {
             setThemeMode("dark");
@@ -47,7 +47,7 @@ export default function ThemeModeSwitcher() {
         <Button
           shape="circle"
           type="text"
-          icon={<DesktopOutlined />}
+          icon={<FiMonitor size={15} />}
           aria-label="Set system theme"
           onClick={function onClickSystem() {
             setThemeMode("system");
