@@ -1,11 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Empty, Flex, Spin, Tabs } from "antd";
+import { Empty, Tabs } from "antd";
 import type { TabsProps } from "antd";
 import type { UploadFile } from "antd/es/upload/interface";
 import { useQueryClient } from "@tanstack/react-query";
 
+import AppLoader from "@/components/common/app-loader/app-loader";
 import InventoryTopbar from "@/components/inventory/layout/inventory-topbar/inventory-topbar";
 import InventoryProductDetailsModal, {
   type InventoryProductFormValues,
@@ -377,14 +378,10 @@ export default function InventoryPageContent() {
   };
 
   if (warehousesQuery.isLoading) {
-    return (
-      <Flex align="center" justify="center" style={{ minHeight: "100vh" }}>
-        <Spin size="large" />
-      </Flex>
-    );
+    return <AppLoader minHeight="calc(100vh - 48px)" />;
   }
 
-  if (warehouses.length === 0) {
+  if (!warehouses.length) {
     return (
       <main
         style={{ minHeight: "100vh", display: "grid", placeItems: "center" }}
@@ -405,6 +402,11 @@ export default function InventoryPageContent() {
     productDetailsQuery.data?.data,
   );
 
+  const productQueryIsLoading =
+    (activeTab === "all" && allProductsQuery.isLoading) ||
+    (activeTab === "warehouse" && warehouseProductsQuery.isLoading) ||
+    (activeTab === "archived" && archivedProductsQuery.isLoading);
+
   const tabItems: TabsProps["items"] = [
     {
       key: "all",
@@ -413,7 +415,7 @@ export default function InventoryPageContent() {
         <InventoryProductsTable
           title="All Products"
           data={allProducts}
-          loading={allProductsQuery.isLoading}
+          loading={false}
           onRowClick={setSelectedProductId}
         />
       ),
@@ -425,7 +427,7 @@ export default function InventoryPageContent() {
         <InventoryProductsTable
           title="Warehouse Based Products"
           data={warehouseProducts}
-          loading={warehouseProductsQuery.isLoading}
+          loading={false}
           onRowClick={setSelectedProductId}
         />
       ),
@@ -437,7 +439,7 @@ export default function InventoryPageContent() {
         <InventoryProductsTable
           title="Archived Products"
           data={archivedProducts}
-          loading={archivedProductsQuery.isLoading}
+          loading={false}
           onRowClick={setSelectedProductId}
         />
       ),
@@ -460,7 +462,22 @@ export default function InventoryPageContent() {
         onChange={function onChange(tabKey) {
           setActiveTab(tabKey as InventoryTabKey);
         }}
-        items={tabItems}
+        items={
+          productQueryIsLoading
+            ? [
+                {
+                  key: activeTab,
+                  label:
+                    activeTab === "all"
+                      ? "All Products"
+                      : activeTab === "warehouse"
+                        ? "Warehouse Products"
+                        : "Archived Products",
+                  children: <AppLoader minHeight="calc(100vh - 220px)" />,
+                },
+              ]
+            : tabItems
+        }
       />
 
       <InventoryProductDetailsModal

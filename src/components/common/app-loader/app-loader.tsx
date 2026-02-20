@@ -4,11 +4,15 @@ import Lottie from "lottie-react";
 
 import warehouseLoadingAnimation from "@/lottie/warehouse-loading-animation.json";
 
-export default function AppLoader() {
+type AppLoaderProps = {
+  minHeight?: string;
+};
+
+export default function AppLoader({ minHeight = "100vh" }: AppLoaderProps) {
   return (
     <div
       style={{
-        minHeight: "100vh",
+        minHeight,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",

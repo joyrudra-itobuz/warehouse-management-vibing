@@ -19,6 +19,7 @@ import type {
   DashboardTableRow,
   WarehouseItem,
 } from "@/types/apis/dashboard/dashboard-response-types/dashboard-response-types";
+import AppLoader from "@/components/common/app-loader/app-loader";
 
 function toArray(input: unknown): unknown[] {
   if (Array.isArray(input)) {
@@ -229,9 +230,7 @@ function extractTopSellingRows(data: unknown): DashboardTableRow[] {
 
     rows.push({
       id: String(record.productId ?? record.id ?? record._id ?? `top-${index}`),
-      name: String(
-        record.productName ?? record.name ?? `Product ${index + 1}`,
-      ),
+      name: String(record.productName ?? record.name ?? `Product ${index + 1}`),
       quantity: toNumber(record.totalSoldQuantity ?? record.quantity),
       amount: toNumber(record.totalSalesAmount ?? record.amount),
       status: String(record.category ?? record.status ?? "Top"),
@@ -410,7 +409,7 @@ export default function DashboardPageContent() {
   if (warehousesQuery.isLoading) {
     return (
       <Flex align="center" justify="center" style={{ minHeight: "100vh" }}>
-        <Spin size="large" />
+        <AppLoader />
       </Flex>
     );
   }
