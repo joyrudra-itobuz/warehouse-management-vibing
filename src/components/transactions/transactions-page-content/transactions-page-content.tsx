@@ -316,6 +316,7 @@ export default function TransactionsPageContent() {
           setSelectedTransaction(null);
         }}
         transaction={selectedTransaction}
+        loading={transactionsQuery.isLoading}
       />
     </>
   );

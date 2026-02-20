@@ -1,7 +1,16 @@
 "use client";
 
-import { Descriptions, Image, Modal, Space, Tag, Typography } from "antd";
+import {
+  Descriptions,
+  Image,
+  Modal,
+  Skeleton,
+  Space,
+  Tag,
+  Typography,
+} from "antd";
 
+import AccentSkeletonThemeProvider from "@/components/common/accent-skeleton-theme-provider/accent-skeleton-theme-provider";
 import type { TransactionDetails } from "@/types/apis/transactions/transaction-response-types/transaction-response-types";
 
 const { Text } = Typography;
@@ -10,6 +19,7 @@ type TransactionDetailsModalProps = {
   open: boolean;
   onClose: VoidFunction;
   transaction: TransactionDetails | null;
+  loading?: boolean;
 };
 
 function renderValue(value: string | number) {
@@ -24,7 +34,18 @@ export default function TransactionDetailsModal({
   open,
   onClose,
   transaction,
+  loading,
 }: TransactionDetailsModalProps) {
+  const loadingSkeleton = (
+    <AccentSkeletonThemeProvider>
+      <Space direction="vertical" size={14} style={{ width: "100%" }}>
+        <Skeleton active title={false} paragraph={{ rows: 2 }} />
+        <Skeleton.Image active style={{ width: 92, height: 92 }} />
+        <Skeleton active title={false} paragraph={{ rows: 10 }} />
+      </Space>
+    </AccentSkeletonThemeProvider>
+  );
+
   return (
     <Modal
       open={open}
@@ -34,7 +55,9 @@ export default function TransactionDetailsModal({
       width={860}
       destroyOnClose
     >
-      {!transaction ? null : (
+      {loading || !transaction ? (
+        loadingSkeleton
+      ) : (
         <Space direction="vertical" size={16} style={{ width: "100%" }}>
           {transaction.productImages.length > 0 ? (
             <Image.PreviewGroup>

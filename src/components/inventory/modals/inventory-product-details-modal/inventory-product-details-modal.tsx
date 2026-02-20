@@ -10,6 +10,7 @@ import {
   InputNumber,
   Modal,
   Row,
+  Skeleton,
   Space,
   Switch,
   Tabs,
@@ -20,6 +21,7 @@ import {
 import type { UploadFile } from "antd/es/upload/interface";
 import { useEffect, useState } from "react";
 
+import AccentSkeletonThemeProvider from "@/components/common/accent-skeleton-theme-provider/accent-skeleton-theme-provider";
 import type { InventoryProductDetails } from "@/types/apis/inventory/inventory-response-types/inventory-response-types";
 
 const { TextArea } = Input;
@@ -85,6 +87,26 @@ export default function InventoryProductDetailsModal({
     return event?.fileList ?? [];
   };
 
+  const loadingSkeleton = (
+    <AccentSkeletonThemeProvider>
+      <Space direction="vertical" size={14} style={{ width: "100%" }}>
+        <Skeleton.Input active size="small" style={{ width: 140 }} />
+        <Skeleton active title={false} paragraph={{ rows: 8 }} />
+        <Row gutter={[12, 12]}>
+          <Col xs={24} md={12}>
+            <Skeleton.Input active block />
+          </Col>
+          <Col xs={24} md={12}>
+            <Skeleton.Input active block />
+          </Col>
+          <Col xs={24}>
+            <Skeleton.Image active style={{ width: "100%", height: 140 }} />
+          </Col>
+        </Row>
+      </Space>
+    </AccentSkeletonThemeProvider>
+  );
+
   return (
     <Modal
       open={open}
@@ -104,7 +126,9 @@ export default function InventoryProductDetailsModal({
       destroyOnClose
       confirmLoading={submitting}
     >
-      {!product ? (
+      {loading && !product ? (
+        loadingSkeleton
+      ) : !product ? (
         <Empty description="No product details available" />
       ) : (
         <Form<InventoryProductFormValues>

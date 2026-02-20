@@ -1,9 +1,9 @@
 "use client";
 
-import { Card, Skeleton, Space, Table, Tag, Typography } from "antd";
+import { Card, Table, Tag, Typography } from "antd";
 import type { ColumnsType, TablePaginationConfig } from "antd/es/table";
 
-import AccentSkeletonThemeProvider from "@/components/common/accent-skeleton-theme-provider/accent-skeleton-theme-provider";
+import TableBodySkeleton from "@/components/common/table-body-skeleton/table-body-skeleton";
 import type { TransactionRow } from "@/types/apis/transactions/transaction-response-types/transaction-response-types";
 
 const { Text } = Typography;
@@ -94,41 +94,12 @@ export default function TransactionsTable({
   onChangePage,
   onRowClick,
 }: TransactionsTableProps) {
-  if (loading) {
-    return (
-      <Card bordered={false} style={{ borderRadius: 16 }}>
-        <AccentSkeletonThemeProvider>
-          <Space direction="vertical" size={12} style={{ width: "100%" }}>
-            <Skeleton.Input active size="small" style={{ width: 240 }} />
-            <Skeleton
-              active
-              paragraph={{
-                rows: 8,
-                width: [
-                  "100%",
-                  "97%",
-                  "99%",
-                  "96%",
-                  "98%",
-                  "95%",
-                  "97%",
-                  "94%",
-                ],
-              }}
-              title={false}
-            />
-          </Space>
-        </AccentSkeletonThemeProvider>
-      </Card>
-    );
-  }
-
   return (
     <Card bordered={false} style={{ borderRadius: 16 }}>
       <Table
         rowKey="id"
         columns={columns}
-        dataSource={data}
+        dataSource={loading ? [] : data}
         loading={false}
         pagination={{
           current: page,
@@ -136,6 +107,11 @@ export default function TransactionsTable({
           total,
           showSizeChanger: true,
           pageSizeOptions: ["10", "20", "50"],
+        }}
+        locale={{
+          emptyText: loading ? (
+            <TableBodySkeleton rows={8} columns={8} />
+          ) : undefined,
         }}
         onChange={function onChangeTable(pagination: TablePaginationConfig) {
           const nextPage = pagination.current ?? 1;

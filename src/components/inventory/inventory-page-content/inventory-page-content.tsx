@@ -6,7 +6,6 @@ import type { TabsProps } from "antd";
 import type { UploadFile } from "antd/es/upload/interface";
 import { useQueryClient } from "@tanstack/react-query";
 
-import AppLoader from "@/components/common/app-loader/app-loader";
 import InventoryTopbar from "@/components/inventory/layout/inventory-topbar/inventory-topbar";
 import InventoryProductDetailsModal, {
   type InventoryProductFormValues,
@@ -377,11 +376,9 @@ export default function InventoryPageContent() {
     );
   };
 
-  if (warehousesQuery.isLoading) {
-    return <AppLoader minHeight="calc(100vh - 48px)" />;
-  }
+  const isBootstrapping = warehousesQuery.isLoading;
 
-  if (!warehouses.length) {
+  if (!isBootstrapping && !warehouses.length) {
     return (
       <main
         style={{ minHeight: "100vh", display: "grid", placeItems: "center" }}
@@ -402,11 +399,6 @@ export default function InventoryPageContent() {
     productDetailsQuery.data?.data,
   );
 
-  const productQueryIsLoading =
-    (activeTab === "all" && allProductsQuery.isLoading) ||
-    (activeTab === "warehouse" && warehouseProductsQuery.isLoading) ||
-    (activeTab === "archived" && archivedProductsQuery.isLoading);
-
   const tabItems: TabsProps["items"] = [
     {
       key: "all",
@@ -414,8 +406,8 @@ export default function InventoryPageContent() {
       children: (
         <InventoryProductsTable
           title="All Products"
-          data={allProducts}
-          loading={false}
+          data={isBootstrapping ? [] : allProducts}
+          loading={isBootstrapping || allProductsQuery.isLoading}
           onRowClick={setSelectedProductId}
         />
       ),
@@ -426,8 +418,8 @@ export default function InventoryPageContent() {
       children: (
         <InventoryProductsTable
           title="Warehouse Based Products"
-          data={warehouseProducts}
-          loading={false}
+          data={isBootstrapping ? [] : warehouseProducts}
+          loading={isBootstrapping || warehouseProductsQuery.isLoading}
           onRowClick={setSelectedProductId}
         />
       ),
@@ -438,8 +430,8 @@ export default function InventoryPageContent() {
       children: (
         <InventoryProductsTable
           title="Archived Products"
-          data={archivedProducts}
-          loading={false}
+          data={isBootstrapping ? [] : archivedProducts}
+          loading={isBootstrapping || archivedProductsQuery.isLoading}
           onRowClick={setSelectedProductId}
         />
       ),
@@ -462,22 +454,7 @@ export default function InventoryPageContent() {
         onChange={function onChange(tabKey) {
           setActiveTab(tabKey as InventoryTabKey);
         }}
-        items={
-          productQueryIsLoading
-            ? [
-                {
-                  key: activeTab,
-                  label:
-                    activeTab === "all"
-                      ? "All Products"
-                      : activeTab === "warehouse"
-                        ? "Warehouse Products"
-                        : "Archived Products",
-                  children: <AppLoader minHeight="calc(100vh - 220px)" />,
-                },
-              ]
-            : tabItems
-        }
+        items={tabItems}
       />
 
       <InventoryProductDetailsModal
