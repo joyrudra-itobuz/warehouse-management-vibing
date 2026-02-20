@@ -39,9 +39,30 @@ export default function TransactionDetailsModal({
   const loadingSkeleton = (
     <AccentSkeletonThemeProvider>
       <Space direction="vertical" size={14} style={{ width: "100%" }}>
+        <Space size={12} wrap>
+          <Skeleton.Image active style={{ width: 92, height: 92 }} />
+          <Skeleton.Image active style={{ width: 92, height: 92 }} />
+          <Skeleton.Image active style={{ width: 92, height: 92 }} />
+        </Space>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+            gap: 12,
+          }}
+        >
+          {Array.from({ length: 10 }).map(function mapField(_, index) {
+            return (
+              <Skeleton.Input
+                key={`field-${index}`}
+                active
+                block
+                style={{ height: 36 }}
+              />
+            );
+          })}
+        </div>
         <Skeleton active title={false} paragraph={{ rows: 2 }} />
-        <Skeleton.Image active style={{ width: 92, height: 92 }} />
-        <Skeleton active title={false} paragraph={{ rows: 10 }} />
       </Space>
     </AccentSkeletonThemeProvider>
   );

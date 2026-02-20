@@ -7,15 +7,17 @@ import AccentSkeletonThemeProvider from "@/components/common/accent-skeleton-the
 type TableBodySkeletonProps = {
   rows?: number;
   columns?: number;
+  rowHeight?: number;
 };
 
 export default function TableBodySkeleton({
-  rows = 6,
+  rows = 8,
   columns = 5,
+  rowHeight = 22,
 }: TableBodySkeletonProps) {
   return (
     <AccentSkeletonThemeProvider>
-      <Space direction="vertical" size={10} style={{ width: "100%" }}>
+      <Space direction="vertical" size={12} style={{ width: "100%" }}>
         {Array.from({ length: rows }).map(function mapRow(_, rowIndex) {
           return (
             <div
@@ -25,6 +27,7 @@ export default function TableBodySkeleton({
                 gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
                 gap: 12,
                 width: "100%",
+                padding: "3px 0",
               }}
             >
               {Array.from({ length: columns }).map(
@@ -33,7 +36,7 @@ export default function TableBodySkeleton({
                     <div
                       key={`cell-${rowIndex}-${colIndex}`}
                       style={{
-                        height: 14,
+                        height: rowHeight,
                         borderRadius: 8,
                         background:
                           colIndex === 0

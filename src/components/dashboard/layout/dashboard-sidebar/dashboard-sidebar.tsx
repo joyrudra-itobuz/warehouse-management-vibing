@@ -18,12 +18,14 @@ const sidebarRoutes: Record<string, string> = {
   dashboard: "/dashboard",
   inventory: "/inventory",
   transactions: "/transactions",
+  settings: "/settings",
 };
 
 const menuItems: MenuProps["items"] = [
   { key: "dashboard", label: "Dashboard" },
   { key: "inventory", label: "Inventory" },
   { key: "transactions", label: "Transactions" },
+  { key: "settings", label: "Settings" },
   { key: "customers", label: "Customers", disabled: true },
   { key: "report", label: "Report", disabled: true },
 ];
@@ -41,7 +43,9 @@ export default function DashboardSidebar({
       ? "inventory"
       : pathname.startsWith("/transactions")
         ? "transactions"
-        : "dashboard");
+        : pathname.startsWith("/settings")
+          ? "settings"
+          : "dashboard");
 
   const handleLogout = function handleLogout() {
     clearAuthSession();

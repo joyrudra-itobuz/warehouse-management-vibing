@@ -19,8 +19,16 @@ export default function AppLoader({ minHeight = "100vh" }: AppLoaderProps) {
         padding: 24,
       }}
     >
-      <div style={{ width: 280, maxWidth: "70vw" }}>
-        <Lottie animationData={warehouseLoadingAnimation} loop autoplay />
+      <div style={{ width: 600, maxWidth: "70vw" }}>
+        <Lottie
+          style={{
+            height: 600,
+            width: 600,
+          }}
+          animationData={warehouseLoadingAnimation}
+          loop
+          autoplay
+        />
       </div>
     </div>
   );

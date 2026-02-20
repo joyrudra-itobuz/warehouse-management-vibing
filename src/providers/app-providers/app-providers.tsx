@@ -8,7 +8,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import queryClient from "@/lib/apis/client";
 import AuthStoreHydrator from "@/stores/auth/auth-store-hydrator/auth-store-hydrator";
 import { usePreferencesStore } from "@/stores/preferences";
-import { dashboardDarkTheme, dashboardLightTheme } from "@/theme";
+import { createDashboardDarkTheme, createDashboardLightTheme } from "@/theme";
 
 type AppProvidersProps = {
   children: ReactNode;
@@ -24,6 +24,10 @@ function getSystemIsDark() {
 
 const AppProviders = ({ children }: AppProvidersProps) => {
   const themeMode = usePreferencesStore((state) => state.themeMode);
+  const lightAccentColor = usePreferencesStore(
+    (state) => state.lightAccentColor,
+  );
+  const darkAccentColor = usePreferencesStore((state) => state.darkAccentColor);
   const [isSystemDark, setIsSystemDark] = useState<boolean>(getSystemIsDark);
 
   useEffect(function watchSystemTheme() {
@@ -45,9 +49,11 @@ const AppProviders = ({ children }: AppProvidersProps) => {
 
   const activeTheme = useMemo(
     function getActiveTheme() {
-      return resolvedMode === "dark" ? dashboardDarkTheme : dashboardLightTheme;
+      return resolvedMode === "dark"
+        ? createDashboardDarkTheme(darkAccentColor)
+        : createDashboardLightTheme(lightAccentColor);
     },
-    [resolvedMode],
+    [darkAccentColor, lightAccentColor, resolvedMode],
   );
 
   return (
