@@ -1,7 +1,8 @@
 "use client";
 
-import { Card, Table, Tag, Typography } from "antd";
+import { Card, Skeleton, Space, Table, Tag, Typography } from "antd";
 import type { ColumnsType } from "antd/es/table";
+import AccentSkeletonThemeProvider from "@/components/common/accent-skeleton-theme-provider/accent-skeleton-theme-provider";
 
 import type { InventoryProductRow } from "@/types/apis/inventory/inventory-response-types/inventory-response-types";
 
@@ -62,6 +63,31 @@ export default function InventoryProductsTable({
   loading,
   onRowClick,
 }: InventoryProductsTableProps) {
+  if (loading) {
+    return (
+      <Card bordered={false} style={{ borderRadius: 16 }}>
+        <Text strong>{title}</Text>
+        <AccentSkeletonThemeProvider>
+          <Space
+            direction="vertical"
+            size={12}
+            style={{ width: "100%", marginTop: 12 }}
+          >
+            <Skeleton.Input active size="small" style={{ width: 220 }} />
+            <Skeleton
+              active
+              paragraph={{
+                rows: 7,
+                width: ["100%", "96%", "98%", "97%", "99%", "95%", "96%"],
+              }}
+              title={false}
+            />
+          </Space>
+        </AccentSkeletonThemeProvider>
+      </Card>
+    );
+  }
+
   return (
     <Card bordered={false} style={{ borderRadius: 16 }}>
       <Text strong>{title}</Text>
@@ -69,7 +95,7 @@ export default function InventoryProductsTable({
         rowKey="id"
         columns={columns}
         dataSource={data}
-        loading={loading}
+        loading={false}
         pagination={{ pageSize: 10, showSizeChanger: false }}
         style={{ marginTop: 12 }}
         onRow={function onRow(record) {

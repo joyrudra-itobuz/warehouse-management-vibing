@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Col, Empty, Flex, Row, Spin } from "antd";
+import { Col, Empty, Flex, Row } from "antd";
 
 import DashboardCategoryChart from "@/components/dashboard/charts/dashboard-category-chart/dashboard-category-chart";
 import DashboardComparisonChart from "@/components/dashboard/charts/dashboard-comparison-chart/dashboard-comparison-chart";
@@ -453,6 +453,7 @@ export default function DashboardPageContent() {
             value={`$${stats.totalSales.toLocaleString()}`}
             trend={`${stats.saleQuantity} qty`}
             highlighted
+            loading={statsQuery.isLoading}
           />
         </Col>
         <Col xs={24} md={12} xl={6}>
@@ -460,6 +461,7 @@ export default function DashboardPageContent() {
             title="Total Purchase"
             value={`$${stats.totalPurchase.toLocaleString()}`}
             trend={`${stats.purchaseQuantity} qty`}
+            loading={statsQuery.isLoading}
           />
         </Col>
         <Col xs={24} md={12} xl={6}>
@@ -467,6 +469,7 @@ export default function DashboardPageContent() {
             title="Inventory Quantity"
             value={stats.inventoryQuantity}
             trend="Current stock"
+            loading={statsQuery.isLoading}
           />
         </Col>
         <Col xs={24} md={12} xl={6}>
@@ -474,6 +477,7 @@ export default function DashboardPageContent() {
             title="Today's Shipment"
             value={stats.todayShipmentQuantity}
             trend="Today"
+            loading={statsQuery.isLoading}
           />
         </Col>
       </Row>
