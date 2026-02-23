@@ -8,7 +8,10 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import queryClient from "@/lib/apis/client";
 import AuthStoreHydrator from "@/stores/auth/auth-store-hydrator/auth-store-hydrator";
 import { usePreferencesStore } from "@/stores/preferences";
-import { createDashboardDarkTheme, createDashboardLightTheme } from "@/theme";
+import {
+  createDashboardDarkTheme,
+  createDashboardLightTheme,
+} from "@/theme/index";
 
 type AppProvidersProps = {
   children: ReactNode;
@@ -22,12 +25,10 @@ function getSystemIsDark() {
   return window.matchMedia("(prefers-color-scheme: dark)").matches;
 }
 
-const AppProviders = ({ children }: AppProvidersProps) => {
+export default function AppProviders({ children }: AppProvidersProps) {
   const themeMode = usePreferencesStore((state) => state.themeMode);
-  const lightAccentColor = usePreferencesStore(
-    (state) => state.lightAccentColor,
-  );
-  const darkAccentColor = usePreferencesStore((state) => state.darkAccentColor);
+  const lightPalette = usePreferencesStore((state) => state.lightPalette);
+  const darkPalette = usePreferencesStore((state) => state.darkPalette);
   const [isSystemDark, setIsSystemDark] = useState<boolean>(getSystemIsDark);
 
   useEffect(function watchSystemTheme() {
@@ -50,10 +51,10 @@ const AppProviders = ({ children }: AppProvidersProps) => {
   const activeTheme = useMemo(
     function getActiveTheme() {
       return resolvedMode === "dark"
-        ? createDashboardDarkTheme(darkAccentColor)
-        : createDashboardLightTheme(lightAccentColor);
+        ? createDashboardDarkTheme(darkPalette)
+        : createDashboardLightTheme(lightPalette);
     },
-    [darkAccentColor, lightAccentColor, resolvedMode],
+    [darkPalette, lightPalette, resolvedMode],
   );
 
   return (
@@ -66,6 +67,4 @@ const AppProviders = ({ children }: AppProvidersProps) => {
       </QueryClientProvider>
     </AntdRegistry>
   );
-};
-
-export default AppProviders;
+}

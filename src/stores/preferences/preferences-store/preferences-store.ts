@@ -1,13 +1,16 @@
 import { create } from "zustand";
 
-import type { ThemeMode } from "@/theme";
+import {
+  defaultDarkPalette,
+  defaultLightPalette,
+  type EditableThemePalette,
+  type ThemeMode,
+} from "@/theme/index";
 import type { PreferencesStore } from "@/types/stores/preferences/preferences-store-types/preferences-store-types";
 
 const THEME_MODE_STORAGE_KEY = "wm-theme-mode";
-const LIGHT_ACCENT_STORAGE_KEY = "wm-theme-light-accent";
-const DARK_ACCENT_STORAGE_KEY = "wm-theme-dark-accent";
-const DEFAULT_LIGHT_ACCENT = "#8FAA30";
-const DEFAULT_DARK_ACCENT = "#9BBC3D";
+const LIGHT_PALETTE_STORAGE_KEY = "wm-theme-light-palette";
+const DARK_PALETTE_STORAGE_KEY = "wm-theme-dark-palette";
 
 function isHexColor(value: string) {
   return /^#[0-9a-fA-F]{6}$/.test(value);
@@ -39,56 +42,120 @@ function setStoredThemeMode(value: ThemeMode) {
   localStorage.setItem(THEME_MODE_STORAGE_KEY, value);
 }
 
-function getStoredAccentColor(storageKey: string, fallback: string) {
+function isPalette(value: unknown): value is EditableThemePalette {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const candidate = value as Record<string, unknown>;
+
+  return (
+    typeof candidate.primary === "string" &&
+    typeof candidate.bgBase === "string" &&
+    typeof candidate.bgContainer === "string" &&
+    typeof candidate.text === "string" &&
+    typeof candidate.textSecondary === "string" &&
+    typeof candidate.border === "string" &&
+    typeof candidate.sidebar === "string" &&
+    typeof candidate.success === "string" &&
+    typeof candidate.warning === "string" &&
+    typeof candidate.error === "string" &&
+    typeof candidate.info === "string"
+  );
+}
+
+function normalizePalette(
+  rawValue: unknown,
+  fallback: EditableThemePalette,
+): EditableThemePalette {
+  if (!isPalette(rawValue)) {
+    return fallback;
+  }
+
+  const palette = rawValue as EditableThemePalette;
+
+  const sanitized = Object.entries(palette).reduce<EditableThemePalette>(
+    function reducePalette(nextPalette, [key, value]) {
+      if (isHexColor(value)) {
+        nextPalette[key as keyof EditableThemePalette] = value;
+      }
+
+      return nextPalette;
+    },
+    { ...fallback },
+  );
+
+  return sanitized;
+}
+
+function getStoredPalette(storageKey: string, fallback: EditableThemePalette) {
   if (typeof window === "undefined") {
     return fallback;
   }
 
   const storedValue = localStorage.getItem(storageKey);
 
-  if (storedValue && isHexColor(storedValue)) {
-    return storedValue;
+  if (!storedValue) {
+    return fallback;
   }
 
-  return fallback;
+  try {
+    return normalizePalette(JSON.parse(storedValue), fallback);
+  } catch {
+    return fallback;
+  }
 }
 
-function setStoredAccentColor(storageKey: string, value: string) {
+function setStoredPalette(storageKey: string, value: EditableThemePalette) {
   if (typeof window === "undefined") {
     return;
   }
 
-  localStorage.setItem(storageKey, value);
+  localStorage.setItem(storageKey, JSON.stringify(value));
 }
 
 export const usePreferencesStore = create<PreferencesStore>()((set) => ({
   themeMode: getStoredThemeMode(),
-  lightAccentColor: getStoredAccentColor(
-    LIGHT_ACCENT_STORAGE_KEY,
-    DEFAULT_LIGHT_ACCENT,
+  lightPalette: getStoredPalette(
+    LIGHT_PALETTE_STORAGE_KEY,
+    defaultLightPalette,
   ),
-  darkAccentColor: getStoredAccentColor(
-    DARK_ACCENT_STORAGE_KEY,
-    DEFAULT_DARK_ACCENT,
-  ),
+  darkPalette: getStoredPalette(DARK_PALETTE_STORAGE_KEY, defaultDarkPalette),
   setThemeMode: (themeMode) => {
     setStoredThemeMode(themeMode);
     set({ themeMode });
   },
-  setLightAccentColor: (color) => {
-    if (!isHexColor(color)) {
+  setPaletteColor: (mode, colorKey, value) => {
+    if (!isHexColor(value)) {
       return;
     }
 
-    setStoredAccentColor(LIGHT_ACCENT_STORAGE_KEY, color);
-    set({ lightAccentColor: color });
+    set(function updatePalette(state) {
+      const source = mode === "light" ? state.lightPalette : state.darkPalette;
+      const nextPalette = {
+        ...source,
+        [colorKey]: value,
+      } as EditableThemePalette;
+
+      if (mode === "light") {
+        setStoredPalette(LIGHT_PALETTE_STORAGE_KEY, nextPalette);
+
+        return { lightPalette: nextPalette };
+      }
+
+      setStoredPalette(DARK_PALETTE_STORAGE_KEY, nextPalette);
+
+      return { darkPalette: nextPalette };
+    });
   },
-  setDarkAccentColor: (color) => {
-    if (!isHexColor(color)) {
+  resetPalette: (mode) => {
+    if (mode === "light") {
+      setStoredPalette(LIGHT_PALETTE_STORAGE_KEY, defaultLightPalette);
+      set({ lightPalette: defaultLightPalette });
       return;
     }
 
-    setStoredAccentColor(DARK_ACCENT_STORAGE_KEY, color);
-    set({ darkAccentColor: color });
+    setStoredPalette(DARK_PALETTE_STORAGE_KEY, defaultDarkPalette);
+    set({ darkPalette: defaultDarkPalette });
   },
 }));

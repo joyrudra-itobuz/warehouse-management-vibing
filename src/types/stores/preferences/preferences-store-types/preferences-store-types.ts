@@ -1,15 +1,19 @@
-import type { ThemeMode } from "@/theme";
+import type { EditableThemePalette, ThemeMode } from "@/theme/index";
 
 export type PreferencesState = {
   themeMode: ThemeMode;
-  lightAccentColor: string;
-  darkAccentColor: string;
+  lightPalette: EditableThemePalette;
+  darkPalette: EditableThemePalette;
 };
 
 export type PreferencesActions = {
   setThemeMode: (themeMode: ThemeMode) => void;
-  setLightAccentColor: (color: string) => void;
-  setDarkAccentColor: (color: string) => void;
+  setPaletteColor: (
+    mode: "light" | "dark",
+    colorKey: keyof EditableThemePalette,
+    value: string,
+  ) => void;
+  resetPalette: (mode: "light" | "dark") => void;
 };
 
 export type PreferencesStore = PreferencesState & PreferencesActions;

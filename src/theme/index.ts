@@ -1,15 +1,44 @@
 import type { ThemeConfig } from "antd";
 import { theme as antTheme } from "antd";
 
-export const dashboardPalette = {
-  accent: "#8FAA30",
-  darkAccent: "#9BBC3D",
-  canvas: "#F2F2F2",
-  surface: "#FFFFFF",
-  sidebar: "#111111",
+export type ThemeMode = "light" | "dark" | "system";
+
+export type EditableThemePalette = {
+  primary: string;
+  bgBase: string;
+  bgContainer: string;
+  text: string;
+  textSecondary: string;
+  border: string;
+  sidebar: string;
+  success: string;
+  warning: string;
+  error: string;
+  info: string;
+};
+
+export const defaultLightPalette: EditableThemePalette = {
+  primary: "#8FAA30",
+  bgBase: "#F2F2F2",
+  bgContainer: "#FFFFFF",
   text: "#111111",
   textSecondary: "#555555",
   border: "#E2E2E2",
+  sidebar: "#111111",
+  success: "#2FB56E",
+  warning: "#F3BD45",
+  error: "#EE7070",
+  info: "#5A98F5",
+};
+
+export const defaultDarkPalette: EditableThemePalette = {
+  primary: "#9BBC3D",
+  bgBase: "#090909",
+  bgContainer: "#151515",
+  text: "#F4F4F4",
+  textSecondary: "#B7B7B7",
+  border: "#2A2A2A",
+  sidebar: "#191919",
   success: "#2FB56E",
   warning: "#F3BD45",
   error: "#EE7070",
@@ -24,8 +53,6 @@ export const dashboardLayout = {
   gridGap: 16,
   cardRadius: 18,
 };
-
-export type ThemeMode = "light" | "dark" | "system";
 
 function clamp(value: number) {
   return Math.min(255, Math.max(0, value));
@@ -71,10 +98,10 @@ function mixWithBlack(hex: string, ratio: number) {
   return rgbToHex(r * (1 - ratio), g * (1 - ratio), b * (1 - ratio));
 }
 
-function createSharedTheme(accent: string): ThemeConfig {
-  const accentSoft = mixWithWhite(accent, 0.72);
-  const accentHover = mixWithBlack(accent, 0.1);
-  const accentActive = mixWithBlack(accent, 0.2);
+function createSharedTheme(palette: EditableThemePalette): ThemeConfig {
+  const accentSoft = mixWithWhite(palette.primary, 0.72);
+  const accentHover = mixWithBlack(palette.primary, 0.1);
+  const accentActive = mixWithBlack(palette.primary, 0.2);
 
   return {
     cssVar: undefined,
@@ -84,11 +111,11 @@ function createSharedTheme(accent: string): ThemeConfig {
       fontSize: 14,
       borderRadius: 12,
       borderRadiusLG: 18,
-      colorPrimary: accent,
-      colorSuccess: dashboardPalette.success,
-      colorWarning: dashboardPalette.warning,
-      colorError: dashboardPalette.error,
-      colorInfo: dashboardPalette.info,
+      colorPrimary: palette.primary,
+      colorSuccess: palette.success,
+      colorWarning: palette.warning,
+      colorError: palette.error,
+      colorInfo: palette.info,
       controlHeight: 40,
       controlOutline: "transparent",
     },
@@ -103,7 +130,7 @@ function createSharedTheme(accent: string): ThemeConfig {
         borderRadiusLG: dashboardLayout.cardRadius,
         headerFontSize: 16,
         headerHeight: 54,
-        colorBorderSecondary: dashboardPalette.border,
+        colorBorderSecondary: palette.border,
       },
       Button: {
         borderRadius: 12,
@@ -124,57 +151,59 @@ function createSharedTheme(accent: string): ThemeConfig {
         activeBorderColor: accentHover,
       },
       Progress: {
-        defaultColor: accent,
-        remainingColor: mixWithWhite(accent, 0.82),
+        defaultColor: palette.primary,
+        remainingColor: mixWithWhite(palette.primary, 0.82),
       },
       Tabs: {
-        itemColor: dashboardPalette.textSecondary,
+        itemColor: palette.textSecondary,
         itemHoverColor: accentHover,
         itemSelectedColor: accentActive,
         inkBarColor: accentActive,
-        cardBg: dashboardPalette.surface,
+        cardBg: palette.bgContainer,
         horizontalItemPadding: "10px 14px",
       },
     },
   };
 }
 
-export function createDashboardLightTheme(accent: string): ThemeConfig {
-  const sharedTheme = createSharedTheme(accent);
-  const accentSoft = mixWithWhite(accent, 0.72);
+export function createDashboardLightTheme(
+  palette: EditableThemePalette,
+): ThemeConfig {
+  const sharedTheme = createSharedTheme(palette);
+  const accentSoft = mixWithWhite(palette.primary, 0.72);
 
   return {
     ...sharedTheme,
     token: {
       ...sharedTheme.token,
-      colorPrimary: accent,
-      colorBgBase: dashboardPalette.canvas,
-      colorBgContainer: dashboardPalette.surface,
-      colorTextBase: dashboardPalette.text,
-      colorText: dashboardPalette.text,
-      colorTextSecondary: dashboardPalette.textSecondary,
-      colorBorder: dashboardPalette.border,
-      colorSplit: dashboardPalette.border,
+      colorPrimary: palette.primary,
+      colorBgBase: palette.bgBase,
+      colorBgContainer: palette.bgContainer,
+      colorTextBase: palette.text,
+      colorText: palette.text,
+      colorTextSecondary: palette.textSecondary,
+      colorBorder: palette.border,
+      colorSplit: palette.border,
       boxShadowSecondary: "0 6px 20px rgba(17, 24, 39, 0.08)",
     },
     components: {
       ...sharedTheme.components,
       Layout: {
-        bodyBg: dashboardPalette.canvas,
-        headerBg: dashboardPalette.surface,
+        bodyBg: palette.bgBase,
+        headerBg: palette.bgContainer,
         headerHeight: dashboardLayout.headerHeight,
-        siderBg: dashboardPalette.sidebar,
-        triggerBg: dashboardPalette.sidebar,
+        siderBg: palette.sidebar,
+        triggerBg: palette.sidebar,
         triggerColor: "#FFFFFF",
-        lightSiderBg: dashboardPalette.surface,
+        lightSiderBg: palette.bgContainer,
       },
       Menu: {
         ...sharedTheme.components?.Menu,
-        darkItemBg: dashboardPalette.sidebar,
+        darkItemBg: palette.sidebar,
         darkItemColor: "rgba(255,255,255,0.76)",
-        darkSubMenuItemBg: dashboardPalette.sidebar,
-        darkItemSelectedBg: "rgba(143, 170, 48, 0.22)",
-        darkItemSelectedColor: "#DDEAA6",
+        darkSubMenuItemBg: palette.sidebar,
+        darkItemSelectedBg: hexToRgba(palette.primary, 0.22),
+        darkItemSelectedColor: mixWithWhite(palette.primary, 0.65),
         darkItemHoverBg: "rgba(255,255,255,0.06)",
         darkItemHoverColor: "#FFFFFF",
       },
@@ -182,101 +211,100 @@ export function createDashboardLightTheme(accent: string): ThemeConfig {
         headerBg: "#F8F9FB",
         headerColor: "#4B5464",
         rowHoverBg: accentSoft,
-        borderColor: dashboardPalette.border,
+        borderColor: palette.border,
         cellPaddingBlock: 12,
         cellPaddingInline: 12,
       },
       Badge: {
-        colorError: dashboardPalette.error,
+        colorError: palette.error,
       },
     },
   };
 }
 
-export function createDashboardDarkTheme(accent: string): ThemeConfig {
-  const sharedTheme = createSharedTheme(accent);
-  const accentSoft = mixWithWhite(accent, 0.25);
+export function createDashboardDarkTheme(
+  palette: EditableThemePalette,
+): ThemeConfig {
+  const sharedTheme = createSharedTheme(palette);
+  const accentSoft = mixWithWhite(palette.primary, 0.25);
 
   return {
     ...sharedTheme,
     algorithm: antTheme.darkAlgorithm,
     token: {
       ...sharedTheme.token,
-      colorPrimary: accent,
-      colorBgBase: "#090909",
-      colorBgContainer: "#151515",
-      colorTextBase: "#F4F4F4",
-      colorText: "#F4F4F4",
-      colorTextSecondary: "#B7B7B7",
-      colorBorder: "#2A2A2A",
-      colorSplit: "#2A2A2A",
+      colorPrimary: palette.primary,
+      colorBgBase: palette.bgBase,
+      colorBgContainer: palette.bgContainer,
+      colorTextBase: palette.text,
+      colorText: palette.text,
+      colorTextSecondary: palette.textSecondary,
+      colorBorder: palette.border,
+      colorSplit: palette.border,
       boxShadowSecondary: "0 6px 20px rgba(0, 0, 0, 0.35)",
     },
     components: {
       ...sharedTheme.components,
       Layout: {
-        bodyBg: "#090909",
-        headerBg: "#151515",
+        bodyBg: palette.bgBase,
+        headerBg: palette.bgContainer,
         headerHeight: dashboardLayout.headerHeight,
-        siderBg: "#191919",
-        triggerBg: "#191919",
+        siderBg: palette.sidebar,
+        triggerBg: palette.sidebar,
         triggerColor: "#FFFFFF",
-        lightSiderBg: "#151515",
+        lightSiderBg: palette.bgContainer,
       },
       Menu: {
         ...sharedTheme.components?.Menu,
-        darkItemBg: "#191919",
+        darkItemBg: palette.sidebar,
         darkItemColor: "rgba(255,255,255,0.76)",
-        darkSubMenuItemBg: "#191919",
-        darkItemSelectedBg: "rgba(155, 188, 61, 0.22)",
-        darkItemSelectedColor: "#E4F2B7",
+        darkSubMenuItemBg: palette.sidebar,
+        darkItemSelectedBg: hexToRgba(palette.primary, 0.22),
+        darkItemSelectedColor: mixWithWhite(palette.primary, 0.65),
         darkItemHoverBg: "rgba(255,255,255,0.08)",
         darkItemHoverColor: "#FFFFFF",
       },
       Button: {
         ...sharedTheme.components?.Button,
-        colorPrimaryHover: mixWithBlack(accent, 0.12),
-        colorPrimaryActive: mixWithBlack(accent, 0.2),
+        colorPrimaryHover: mixWithBlack(palette.primary, 0.12),
+        colorPrimaryActive: mixWithBlack(palette.primary, 0.2),
       },
       Input: {
         ...sharedTheme.components?.Input,
-        hoverBorderColor: mixWithBlack(accent, 0.12),
-        activeBorderColor: mixWithBlack(accent, 0.12),
+        hoverBorderColor: mixWithBlack(palette.primary, 0.12),
+        activeBorderColor: mixWithBlack(palette.primary, 0.12),
       },
       Select: {
         ...sharedTheme.components?.Select,
-        optionSelectedBg: hexToRgba(accent, 0.22),
-        activeBorderColor: mixWithBlack(accent, 0.12),
+        optionSelectedBg: hexToRgba(palette.primary, 0.22),
+        activeBorderColor: mixWithBlack(palette.primary, 0.12),
       },
       Table: {
         headerBg: "#1B1B1B",
         headerColor: "#DADADA",
-        rowHoverBg: hexToRgba(accent, 0.18),
-        borderColor: "#2A2A2A",
+        rowHoverBg: hexToRgba(palette.primary, 0.18),
+        borderColor: palette.border,
         cellPaddingBlock: 12,
         cellPaddingInline: 12,
       },
       Tabs: {
         ...sharedTheme.components?.Tabs,
-        itemColor: "#B7B7B7",
+        itemColor: palette.textSecondary,
         itemHoverColor: accentSoft,
-        itemSelectedColor: accent,
-        inkBarColor: accent,
-        cardBg: "#151515",
+        itemSelectedColor: palette.primary,
+        inkBarColor: palette.primary,
+        cardBg: palette.bgContainer,
       },
       Badge: {
-        colorError: dashboardPalette.error,
+        colorError: palette.error,
       },
     },
   };
 }
 
-export const dashboardLightTheme: ThemeConfig = createDashboardLightTheme(
-  dashboardPalette.accent,
-);
-
-export const dashboardDarkTheme: ThemeConfig = createDashboardDarkTheme(
-  dashboardPalette.darkAccent,
-);
+export const dashboardLightTheme: ThemeConfig =
+  createDashboardLightTheme(defaultLightPalette);
+export const dashboardDarkTheme: ThemeConfig =
+  createDashboardDarkTheme(defaultDarkPalette);
 
 export default dashboardLightTheme;

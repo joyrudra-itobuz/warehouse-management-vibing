@@ -3,7 +3,6 @@
 import { Column } from "@ant-design/charts";
 import { Card, Empty, Typography, theme } from "antd";
 
-import { dashboardPalette } from "@/theme";
 import type { DashboardSeriesChartPoint } from "@/types/apis/dashboard/dashboard-response-types/dashboard-response-types";
 
 const { Text } = Typography;
@@ -33,7 +32,7 @@ export default function DashboardIssuesChart({
           yField="value"
           seriesField="series"
           group
-          color={[dashboardPalette.error, dashboardPalette.warning]}
+          color={[token.colorError, token.colorWarning]}
           xAxis={{
             label: {
               autoRotate: false,

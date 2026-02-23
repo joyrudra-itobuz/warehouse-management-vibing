@@ -3,7 +3,6 @@
 import { Column } from "@ant-design/charts";
 import { Card, Empty, Typography, theme } from "antd";
 import type { DashboardChartPoint } from "@/types/apis/dashboard/dashboard-response-types/dashboard-response-types";
-import { dashboardPalette } from "@/theme";
 
 const { Text } = Typography;
 
@@ -33,7 +32,7 @@ export default function DashboardCategoryChart({
           colorField="label"
           scale={{
             color: {
-              range: [dashboardPalette.accent, "#CDEB40", "#B7D733", "#E6F69A"],
+              range: [token.colorPrimary, "#CDEB40", "#B7D733", "#E6F69A"],
             },
           }}
           style={{

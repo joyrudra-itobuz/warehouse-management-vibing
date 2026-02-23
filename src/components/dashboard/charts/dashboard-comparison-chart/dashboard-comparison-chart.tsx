@@ -3,7 +3,6 @@
 import { Line } from "@ant-design/charts";
 import { Card, Empty, Typography, theme } from "antd";
 import type { DashboardSeriesChartPoint } from "@/types/apis/dashboard/dashboard-response-types/dashboard-response-types";
-import { dashboardPalette } from "@/theme";
 
 const { Text } = Typography;
 
@@ -31,12 +30,12 @@ export default function DashboardComparisonChart({
           xField="label"
           yField="value"
           seriesField="series"
-          color={[dashboardPalette.accent, "#8FB4FF"]}
+          color={[token.colorPrimary, "#8FB4FF"]}
           point={{
             size: 4,
             shape: "circle",
             style: {
-              fill: dashboardPalette.surface,
+              fill: token.colorBgContainer,
               stroke: token.colorBgContainer,
               lineWidth: 1,
             },
