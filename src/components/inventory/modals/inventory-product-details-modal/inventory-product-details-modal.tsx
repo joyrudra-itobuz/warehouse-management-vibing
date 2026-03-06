@@ -89,10 +89,10 @@ export default function InventoryProductDetailsModal({
 
   const loadingSkeleton = (
     <AccentSkeletonThemeProvider>
-      <Space direction="vertical" size={14} style={{ width: "100%" }}>
+      <Space orientation="vertical" size={14} style={{ width: "100%" }}>
         <Row gutter={[16, 16]} align="top">
           <Col xs={24} md={14}>
-            <Space direction="vertical" size={10} style={{ width: "100%" }}>
+            <Space orientation="vertical" size={10} style={{ width: "100%" }}>
               <Skeleton.Input active size="small" style={{ width: 180 }} />
               <Skeleton.Input active block style={{ height: 36 }} />
               <Skeleton.Input active block style={{ height: 36 }} />
@@ -103,7 +103,7 @@ export default function InventoryProductDetailsModal({
             </Space>
           </Col>
           <Col xs={24} md={10}>
-            <Space direction="vertical" size={10} style={{ width: "100%" }}>
+            <Space orientation="vertical" size={10} style={{ width: "100%" }}>
               <Skeleton.Image active style={{ width: "100%", height: 132 }} />
               <Skeleton.Image active style={{ width: "100%", height: 132 }} />
             </Space>
@@ -197,7 +197,7 @@ export default function InventoryProductDetailsModal({
                       {product.images.length > 0 ? (
                         <Image.PreviewGroup>
                           <Space
-                            direction="vertical"
+                            orientation="vertical"
                             size={10}
                             style={{ width: "100%" }}
                           >

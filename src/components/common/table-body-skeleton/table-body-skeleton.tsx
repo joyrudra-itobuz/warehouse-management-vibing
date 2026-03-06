@@ -17,7 +17,7 @@ export default function TableBodySkeleton({
 }: TableBodySkeletonProps) {
   return (
     <AccentSkeletonThemeProvider>
-      <Space direction="vertical" size={12} style={{ width: "100%" }}>
+      <Space orientation="vertical" size={12} style={{ width: "100%" }}>
         {Array.from({ length: rows }).map(function mapRow(_, rowIndex) {
           return (
             <div

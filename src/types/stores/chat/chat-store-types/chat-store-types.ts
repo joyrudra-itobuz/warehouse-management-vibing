@@ -13,9 +13,12 @@ export type ChatState = {
   isOpen: boolean;
   activeSessionId: string | null;
   warehouseId: string | null;
+  selectedModel: string;
   messages: ChatUIMessage[];
   isStreaming: boolean;
   streamingContent: string;
+  /** Progressively parsed response during streaming — drives live formatted rendering. */
+  streamingParsed: ParsedChatResponse | undefined;
   panelWidth: number;
 };
 
@@ -25,6 +28,8 @@ export type ChatActions = {
   closeChat: () => void;
   setActiveSession: (id: string | null) => void;
   setWarehouseId: (id: string | null) => void;
+  setSelectedModel: (model: string) => void;
+  setStreamingParsed: (parsed: ParsedChatResponse | undefined) => void;
   pushMessage: (msg: ChatUIMessage) => void;
   setMessages: (msgs: ChatUIMessage[]) => void;
   updateLastAssistantMessage: (content: string) => void;

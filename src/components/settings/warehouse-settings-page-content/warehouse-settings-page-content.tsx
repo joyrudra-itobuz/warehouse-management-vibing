@@ -175,8 +175,8 @@ function PaletteEditor({
   onReset,
 }: PaletteEditorProps) {
   return (
-    <Card bordered={false} style={{ borderRadius: 16 }} title={title}>
-      <Space direction="vertical" size={10} style={{ width: "100%" }}>
+    <Card variant="borderless" style={{ borderRadius: 16 }} title={title}>
+      <Space orientation="vertical" size={10} style={{ width: "100%" }}>
         {editableColorFields.map(function mapField(field) {
           return (
             <div
@@ -241,7 +241,7 @@ export default function WarehouseSettingsPageContent() {
   );
 
   return (
-    <Space direction="vertical" size={16} style={{ width: "100%" }}>
+    <Space orientation="vertical" size={16} style={{ width: "100%" }}>
       <div>
         <Title level={2} style={{ marginBottom: 0 }}>
           Warehouse Settings
@@ -251,7 +251,11 @@ export default function WarehouseSettingsPageContent() {
         </Text>
       </div>
 
-      <Card bordered={false} style={{ borderRadius: 16 }} title="Theme Mode">
+      <Card
+        variant="borderless"
+        style={{ borderRadius: 16 }}
+        title="Theme Mode"
+      >
         <Segmented<ThemeMode>
           value={themeMode}
           options={[
@@ -285,7 +289,7 @@ export default function WarehouseSettingsPageContent() {
       </Row>
 
       <Card
-        bordered={false}
+        variant="borderless"
         style={{ borderRadius: 16 }}
         title="Warehouse Information"
       >
@@ -294,7 +298,7 @@ export default function WarehouseSettingsPageContent() {
         ) : warehouses.length === 0 ? (
           <Empty description="No warehouse information available" />
         ) : (
-          <Space direction="vertical" size={12} style={{ width: "100%" }}>
+          <Space orientation="vertical" size={12} style={{ width: "100%" }}>
             {warehouses.map(function mapWarehouse(warehouse) {
               return (
                 <Descriptions

@@ -7,40 +7,23 @@ import type {
 } from "@/types/apis/chat/chat-types/chat-types";
 
 /**
- * Parses the structured markdown format returned by the AI backend:
- *
- * # Summary
- * Some summary text...
- *
- * # Insights
- * * Bullet one
- * * Bullet two
- *
- * # Data
- * ```table
- * { "title": "...", "columns": [...], "rows": [...] }
- * ```
- * ```metric
- * { "label": "...", "value": "..." }
- * ```
+ * Parses ONE structured block (# Summary / # Insights / # Data).
+ * Returns null when the block has no recognisable content.
  */
-export function parseMarkdownResponse(text: string): ParsedChatResponse | null {
+function parseSingleBlock(text: string): ParsedChatResponse | null {
   const hasSummary = text.includes("# Summary");
   const hasInsights = text.includes("# Insights");
   const hasData = text.includes("# Data");
 
-  if (!hasSummary && !hasInsights && !hasData) {
-    return null;
-  }
+  if (!hasSummary && !hasInsights && !hasData) return null;
 
-  // --- Summary section ---
+  // --- Summary ---
   const summaryMatch = text.match(/# Summary\s*\n([\s\S]*?)(?=\n# |\s*$)/);
   const summary = summaryMatch ? summaryMatch[1].trim() : "";
 
-  // --- Insights section ---
+  // --- Insights ---
   const insightsMatch = text.match(/# Insights\s*\n([\s\S]*?)(?=\n# |\s*$)/);
   const insights: string[] = [];
-
   if (insightsMatch) {
     for (const line of insightsMatch[1].split("\n")) {
       const trimmed = line.trim();
@@ -52,22 +35,18 @@ export function parseMarkdownResponse(text: string): ParsedChatResponse | null {
     }
   }
 
-  // --- Data section ---
+  // --- Data blocks ---
   const dataMatch = text.match(/# Data\s*\n([\s\S]*?)(?=\n# |\s*$)/);
   const data: ChatSection[] = [];
 
   if (dataMatch) {
-    const dataText = dataMatch[1];
     const codeBlockRegex = /```(\w+)\n([\s\S]*?)```/g;
     let match: RegExpExecArray | null;
-
-    while ((match = codeBlockRegex.exec(dataText)) !== null) {
+    while ((match = codeBlockRegex.exec(dataMatch[1])) !== null) {
       const blockType = match[1].toLowerCase();
       const blockContent = match[2].trim();
-
       try {
         const parsed = JSON.parse(blockContent) as unknown;
-
         if (blockType === "table") {
           data.push({ type: "table", content: parsed as TableBlock });
         } else if (blockType === "metric") {
@@ -83,10 +62,45 @@ export function parseMarkdownResponse(text: string): ParsedChatResponse | null {
     }
   }
 
-  // If we found structure, return parsed — even if some sections are empty
-  if (!summary && insights.length === 0 && data.length === 0) {
+  if (!summary && insights.length === 0 && data.length === 0) return null;
+  return { summary, insights, data, raw: text };
+}
+
+/**
+ * Entry point — may be called on every streaming chunk for progressive
+ * rendering, so it must never throw and must tolerate partial JSON
+ * (incomplete code-fences are simply skipped by the regex).
+ *
+ * The LLM often emits multiple intermediate `# Summary … # Data` blocks
+ * (with empty rows/datasets) while it calls tools, before the final,
+ * fully-populated answer. We split on those boundaries, walk backwards,
+ * and return the LAST block that has real content — which is always the
+ * richest one.
+ */
+export function parseMarkdownResponse(text: string): ParsedChatResponse | null {
+  if (
+    !text.includes("# Summary") &&
+    !text.includes("# Insights") &&
+    !text.includes("# Data")
+  ) {
     return null;
   }
 
-  return { summary, insights, data, raw: text };
+  // Split so each segment starts at a "# Summary" heading.
+  // Text before the first heading becomes segment[0] and is skipped.
+  const segments = text.split(/(?=^# Summary\b)/m);
+
+  for (let i = segments.length - 1; i >= 0; i--) {
+    const result = parseSingleBlock(segments[i]);
+    if (
+      result &&
+      (result.data.length > 0 ||
+        result.summary.length > 0 ||
+        result.insights.length > 0)
+    ) {
+      return result;
+    }
+  }
+
+  return null;
 }

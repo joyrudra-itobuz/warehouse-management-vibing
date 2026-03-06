@@ -64,7 +64,7 @@ export default function InventoryProductsTable({
   onRowClick,
 }: InventoryProductsTableProps) {
   return (
-    <Card bordered={false} style={{ borderRadius: 16 }}>
+    <Card variant="borderless" style={{ borderRadius: 16 }}>
       <Text strong>{title}</Text>
       <Table
         rowKey="id"

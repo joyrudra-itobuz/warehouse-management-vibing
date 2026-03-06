@@ -49,7 +49,7 @@ const AuthPageLayout = ({ title, subtitle, children }: AuthPageLayoutProps) => {
           </Col>
           <Col xs={24} lg={13}>
             <Card
-              bordered={false}
+              variant="borderless"
               style={{ height: "100%", borderRadius: 24 }}
               bodyStyle={{
                 minHeight: "100%",
@@ -61,7 +61,7 @@ const AuthPageLayout = ({ title, subtitle, children }: AuthPageLayoutProps) => {
             >
               <div style={{ width: "100%", maxWidth: 420 }}>
                 <Space
-                  direction="vertical"
+                  orientation="vertical"
                   size={8}
                   style={{ marginBottom: 24 }}
                 >

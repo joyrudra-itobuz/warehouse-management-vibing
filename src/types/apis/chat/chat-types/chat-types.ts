@@ -1,8 +1,23 @@
+export type ChatHistoryMessage = {
+  role: "user" | "assistant";
+  content: string;
+};
+
 export type ChatMessageDto = {
   message: string;
   sessionId?: string;
   warehouseId?: string;
+  model?: string;
+  history?: ChatHistoryMessage[];
 };
+
+export type ChatModelItem = {
+  id: string;
+  name: string;
+};
+
+/** Backend returns a raw array from GET /chat/models */
+export type ChatModelsResponse = ChatModelItem[];
 
 export type MetricBlock = {
   label: string;

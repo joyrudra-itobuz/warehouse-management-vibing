@@ -95,7 +95,7 @@ export default function TransactionsTable({
   onRowClick,
 }: TransactionsTableProps) {
   return (
-    <Card bordered={false} style={{ borderRadius: 16 }}>
+    <Card variant="borderless" style={{ borderRadius: 16 }}>
       <Table
         rowKey="id"
         columns={columns}

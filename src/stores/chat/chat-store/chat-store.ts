@@ -9,10 +9,17 @@ import type { ParsedChatResponse } from "@/types/apis/chat/chat-types/chat-types
 
 const DEFAULT_PANEL_WIDTH = 380;
 const WAREHOUSE_ID_KEY = "chat_warehouse_id";
+const MODEL_STORAGE_KEY = "chat_selected_model";
+const DEFAULT_MODEL = "llama3.1:8b";
 
 const getStoredWarehouseId = (): string | null => {
   if (typeof window === "undefined") return null;
   return localStorage.getItem(WAREHOUSE_ID_KEY);
+};
+
+const getStoredModel = (): string => {
+  if (typeof window === "undefined") return DEFAULT_MODEL;
+  return localStorage.getItem(MODEL_STORAGE_KEY) ?? DEFAULT_MODEL;
 };
 
 const persistWarehouseId = (id: string | null): void => {
@@ -28,9 +35,11 @@ const initialState: ChatState = {
   isOpen: false,
   activeSessionId: null,
   warehouseId: getStoredWarehouseId(),
+  selectedModel: getStoredModel(),
   messages: [],
   isStreaming: false,
   streamingContent: "",
+  streamingParsed: undefined,
   panelWidth: DEFAULT_PANEL_WIDTH,
 };
 
@@ -56,6 +65,17 @@ export const useChatStore = create<ChatStore>()((set) => ({
   setWarehouseId: (id: string | null) => {
     persistWarehouseId(id);
     set({ warehouseId: id });
+  },
+
+  setSelectedModel: (model: string) => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem(MODEL_STORAGE_KEY, model);
+    }
+    set({ selectedModel: model });
+  },
+
+  setStreamingParsed: (parsed) => {
+    set({ streamingParsed: parsed });
   },
 
   pushMessage: (msg: ChatUIMessage) => {
@@ -111,6 +131,7 @@ export const useChatStore = create<ChatStore>()((set) => ({
         messages,
         isStreaming: false,
         streamingContent: "",
+        streamingParsed: undefined,
       };
     });
   },
@@ -121,6 +142,7 @@ export const useChatStore = create<ChatStore>()((set) => ({
       activeSessionId: null,
       isStreaming: false,
       streamingContent: "",
+      streamingParsed: undefined,
     });
   },
 

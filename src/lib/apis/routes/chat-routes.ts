@@ -3,12 +3,13 @@ import type {
   ChatApiResponse,
   ChatDeleteResponse,
   ChatMessageDto,
+  ChatModelItem,
   ChatSessionDetailResponse,
   ChatSessionsResponse,
 } from "@/types/apis/chat/chat-types/chat-types";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:3001";
+  process.env.NEXT_PUBLIC_API_BASE ?? "http://192.168.68.134:3001";
 
 const getAccessToken = () => {
   if (typeof window === "undefined") {
@@ -89,12 +90,24 @@ function deleteSession(sessionId: string) {
   });
 }
 
+/**
+ * GET /chat/models — list available Ollama models.
+ * Returns a raw array: [{id, name}, ...]
+ */
+function getModels() {
+  return request<ChatModelItem[]>({
+    path: "/chat/models",
+    method: "GET",
+  });
+}
+
 const chatRoutes = {
   sendMessage,
   streamMessage,
   getSessions,
   getSession,
   deleteSession,
+  getModels,
 };
 
 export default chatRoutes;

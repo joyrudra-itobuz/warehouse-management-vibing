@@ -12,7 +12,7 @@ type ErrorWithMessage = {
 };
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE ?? "http://localhost:3001";
+  process.env.NEXT_PUBLIC_API_BASE ?? "http://192.168.68.134:3001";
 
 const getApiUrl = (path: string) => {
   if (!API_BASE_URL) {

@@ -38,7 +38,7 @@ export default function TransactionDetailsModal({
 }: TransactionDetailsModalProps) {
   const loadingSkeleton = (
     <AccentSkeletonThemeProvider>
-      <Space direction="vertical" size={14} style={{ width: "100%" }}>
+      <Space orientation="vertical" size={14} style={{ width: "100%" }}>
         <Space size={12} wrap>
           <Skeleton.Image active style={{ width: 92, height: 92 }} />
           <Skeleton.Image active style={{ width: 92, height: 92 }} />
@@ -79,7 +79,7 @@ export default function TransactionDetailsModal({
       {loading || !transaction ? (
         loadingSkeleton
       ) : (
-        <Space direction="vertical" size={16} style={{ width: "100%" }}>
+        <Space orientation="vertical" size={16} style={{ width: "100%" }}>
           {transaction.productImages.length > 0 ? (
             <Image.PreviewGroup>
               <Space size={12} wrap>

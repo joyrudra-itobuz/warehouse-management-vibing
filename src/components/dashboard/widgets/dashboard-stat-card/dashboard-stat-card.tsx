@@ -26,7 +26,7 @@ export default function DashboardStatCard({
 
   return (
     <Card
-      bordered={false}
+      variant={"borderless"}
       style={{
         borderRadius: 16,
         height: "100%",
@@ -38,7 +38,7 @@ export default function DashboardStatCard({
     >
       {loading ? (
         <AccentSkeletonThemeProvider>
-          <Space direction="vertical" size={10} style={{ width: "100%" }}>
+          <Space orientation="vertical" size={10} style={{ width: "100%" }}>
             <Skeleton.Input active size="small" style={{ width: "45%" }} />
             <Skeleton.Input active size="large" style={{ width: "75%" }} />
             <Skeleton.Button active size="small" style={{ width: 90 }} />
@@ -57,12 +57,12 @@ export default function DashboardStatCard({
           </Text>
           <Statistic
             value={value}
-            valueStyle={{
+            styles={(content) => ({
               marginTop: 8,
               color: highlighted ? "#FFFFFF" : token.colorText,
               fontSize: 30,
               fontWeight: 700,
-            }}
+            })}
           />
           {trend ? (
             <Tag

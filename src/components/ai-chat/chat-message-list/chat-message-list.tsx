@@ -20,13 +20,17 @@ export default function ChatMessageList() {
   const messages = useChatStore((state) => state.messages);
   const isStreaming = useChatStore((state) => state.isStreaming);
   const streamingContent = useChatStore((state) => state.streamingContent);
+  const streamingParsed = useChatStore((state) => state.streamingParsed);
 
   const items: BubbleListProps["items"] = messages.map(function mapMessage(
     msg: ChatUIMessage,
   ) {
     const isStreamingBubble = msg.status === "streaming";
     const content = isStreamingBubble ? streamingContent : msg.content;
-    const parsed = isStreamingBubble ? undefined : msg.parsed;
+    // During streaming, use the progressively-parsed result so formatted
+    // blocks (tables, charts, metrics) render as they arrive rather than
+    // only after the stream is fully complete.
+    const parsed = isStreamingBubble ? streamingParsed : msg.parsed;
 
     return {
       key: msg.id,

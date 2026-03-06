@@ -18,7 +18,7 @@ export default function DashboardCategoryChart({
 
   return (
     <Card
-      bordered={false}
+      variant="borderless"
       style={{
         borderRadius: 16,
         height: "100%",
