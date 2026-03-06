@@ -9,11 +9,26 @@ import type {
 import type { ParsedChatResponse } from "@/types/apis/chat/chat-types/chat-types";
 
 const DEFAULT_PANEL_WIDTH = 380;
+const WAREHOUSE_ID_KEY = "chat_warehouse_id";
+
+const getStoredWarehouseId = (): string | null => {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem(WAREHOUSE_ID_KEY);
+};
+
+const persistWarehouseId = (id: string | null): void => {
+  if (typeof window === "undefined") return;
+  if (id) {
+    localStorage.setItem(WAREHOUSE_ID_KEY, id);
+  } else {
+    localStorage.removeItem(WAREHOUSE_ID_KEY);
+  }
+};
 
 const initialState: ChatState = {
   isOpen: false,
   activeSessionId: null,
-  warehouseId: null,
+  warehouseId: getStoredWarehouseId(),
   messages: [],
   isStreaming: false,
   streamingContent: "",
@@ -40,6 +55,7 @@ export const useChatStore = create<ChatStore>()((set) => ({
   },
 
   setWarehouseId: (id: string | null) => {
+    persistWarehouseId(id);
     set({ warehouseId: id });
   },
 

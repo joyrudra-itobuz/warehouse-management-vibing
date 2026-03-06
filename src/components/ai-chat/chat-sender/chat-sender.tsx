@@ -1,6 +1,7 @@
 "use client";
 
 import { Sender } from "@ant-design/x";
+import { theme } from "antd";
 import { useState } from "react";
 
 import { useChatStream } from "@/hooks/chat/use-chat-stream/use-chat-stream";
@@ -8,6 +9,7 @@ import { useChatStore } from "@/stores/chat";
 
 export default function ChatSender() {
   const [inputValue, setInputValue] = useState("");
+  const { token } = theme.useToken();
 
   const isStreaming = useChatStore((state) => state.isStreaming);
   const activeSessionId = useChatStore((state) => state.activeSessionId);
@@ -45,21 +47,23 @@ export default function ChatSender() {
   }
 
   return (
-    <Sender
-      value={inputValue}
-      onChange={setInputValue}
-      onSubmit={handleSubmit}
-      onCancel={handleCancel}
-      loading={isStreaming}
-      placeholder="Ask about your warehouse..."
-      autoSize={{ minRows: 1, maxRows: 4 }}
-      submitType="enter"
+    <div
       style={{
-        borderTop: "1px solid rgba(0,0,0,0.06)",
-        borderRadius: 0,
-        borderBottomLeftRadius: 0,
-        borderBottomRightRadius: 0,
+        padding: "8px 12px 12px",
+        borderTop: `1px solid ${token.colorBorderSecondary}`,
+        flexShrink: 0,
       }}
-    />
+    >
+      <Sender
+        value={inputValue}
+        onChange={setInputValue}
+        onSubmit={handleSubmit}
+        onCancel={handleCancel}
+        loading={isStreaming}
+        placeholder="Ask about your warehouse..."
+        autoSize={{ minRows: 1, maxRows: 4 }}
+        submitType="enter"
+      />
+    </div>
   );
 }

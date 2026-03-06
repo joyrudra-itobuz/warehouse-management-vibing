@@ -3,6 +3,8 @@
 import { useMemo, useState } from "react";
 import { Col, Empty, Flex, Row } from "antd";
 
+import { useChatStore } from "@/stores/chat";
+
 import DashboardCategoryChart from "@/components/dashboard/charts/dashboard-category-chart/dashboard-category-chart";
 import DashboardComparisonChart from "@/components/dashboard/charts/dashboard-comparison-chart/dashboard-comparison-chart";
 import DashboardIssuesChart from "@/components/dashboard/charts/dashboard-issues-chart/dashboard-issues-chart";
@@ -300,9 +302,17 @@ function getDateRange(days: number) {
 }
 
 export default function DashboardPageContent() {
+  const chatWarehouseId = useChatStore((state) => state.warehouseId);
+  const setWarehouseIdInStore = useChatStore((state) => state.setWarehouseId);
+
   const [selectedWarehouseId, setSelectedWarehouseId] = useState<string | null>(
-    null,
+    chatWarehouseId,
   );
+
+  function handleWarehouseChange(id: string) {
+    setSelectedWarehouseId(id);
+    setWarehouseIdInStore(id);
+  }
 
   const warehousesQuery = useAppQuery<DashboardApiEnvelope<unknown>, Error>({
     queryKey: ["dashboard", "warehouses"],
@@ -443,7 +453,7 @@ export default function DashboardPageContent() {
       <DashboardTopbar
         warehouses={warehouses}
         selectedWarehouseId={activeWarehouseId}
-        onChangeWarehouse={setSelectedWarehouseId}
+        onChangeWarehouse={handleWarehouseChange}
       />
 
       <Row gutter={[16, 16]}>
