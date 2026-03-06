@@ -1,6 +1,10 @@
 "use client";
 
-import { HistoryOutlined, PlusOutlined } from "@ant-design/icons";
+import {
+  CloseOutlined,
+  HistoryOutlined,
+  PlusOutlined,
+} from "@ant-design/icons";
 import { Button, Flex, theme, Typography } from "antd";
 import { useState } from "react";
 
@@ -13,6 +17,7 @@ export default function ChatHeader() {
   const { token } = theme.useToken();
   const resetMessages = useChatStore((state) => state.resetMessages);
   const isStreaming = useChatStore((state) => state.isStreaming);
+  const toggleChat = useChatStore((state) => state.toggleChat);
   const [historyOpen, setHistoryOpen] = useState(false);
 
   function handleNewChat() {
@@ -53,6 +58,12 @@ export default function ChatHeader() {
           >
             New chat
           </Button>
+          <Button
+            size="small"
+            icon={<CloseOutlined />}
+            onClick={toggleChat}
+            title="Close chat"
+          />
         </Flex>
       </Flex>
 

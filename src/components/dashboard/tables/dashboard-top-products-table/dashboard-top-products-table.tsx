@@ -45,7 +45,24 @@ export default function DashboardTopProductsTable({
   loading,
 }: DashboardTopProductsTableProps) {
   return (
-    <Card bordered={false} style={{ borderRadius: 16 }}>
+    <Card
+      bordered={false}
+      style={{
+        borderRadius: 16,
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+      }}
+      styles={{
+        body: {
+          flex: 1,
+          overflow: "auto",
+          display: "flex",
+          flexDirection: "column",
+          padding: 16,
+        },
+      }}
+    >
       <Text strong>Top Selling Products</Text>
       <Table
         rowKey="id"
@@ -53,6 +70,7 @@ export default function DashboardTopProductsTable({
         dataSource={loading ? [] : data}
         loading={false}
         pagination={false}
+        scroll={{ x: "max-content" }}
         style={{ marginTop: 12 }}
         locale={{
           emptyText: loading ? (

@@ -38,7 +38,24 @@ export default function DashboardLowStockTable({
   loading,
 }: DashboardLowStockTableProps) {
   return (
-    <Card bordered={false} style={{ borderRadius: 16 }}>
+    <Card
+      bordered={false}
+      style={{
+        borderRadius: 16,
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+      }}
+      styles={{
+        body: {
+          flex: 1,
+          overflow: "auto",
+          display: "flex",
+          flexDirection: "column",
+          padding: 16,
+        },
+      }}
+    >
       <Text strong>Low Stock Products</Text>
       <Table
         rowKey="id"
@@ -46,6 +63,7 @@ export default function DashboardLowStockTable({
         dataSource={loading ? [] : data}
         loading={false}
         pagination={false}
+        scroll={{ x: "max-content" }}
         style={{ marginTop: 12 }}
         locale={{
           emptyText: loading ? (

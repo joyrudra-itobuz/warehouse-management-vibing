@@ -29,11 +29,12 @@ export default function DashboardStatCard({
       bordered={false}
       style={{
         borderRadius: 16,
+        height: "100%",
         background: highlighted
           ? highlightedBackground
           : token.colorBgContainer,
       }}
-      bodyStyle={{ padding: 18 }}
+      styles={{ body: { padding: 18, height: "100%" } }}
     >
       {loading ? (
         <AccentSkeletonThemeProvider>

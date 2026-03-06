@@ -113,6 +113,7 @@ export default function TransactionsTable({
             <TableBodySkeleton rows={8} columns={8} />
           ) : undefined,
         }}
+        scroll={{ x: "max-content" }}
         onChange={function onChangeTable(pagination: TablePaginationConfig) {
           const nextPage = pagination.current ?? 1;
           const nextLimit = pagination.pageSize ?? limit;

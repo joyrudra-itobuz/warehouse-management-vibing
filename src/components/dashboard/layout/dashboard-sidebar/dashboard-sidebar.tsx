@@ -1,8 +1,19 @@
 "use client";
 
-import { Button, Layout, Menu } from "antd";
+import { useState } from "react";
+import { Button, Layout, Menu, Tooltip } from "antd";
 import type { MenuProps } from "antd";
 import { usePathname, useRouter } from "next/navigation";
+import {
+  DashboardOutlined,
+  InboxOutlined,
+  SwapOutlined,
+  SettingOutlined,
+  TeamOutlined,
+  BarChartOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
+} from "@ant-design/icons";
 import { FiLogOut } from "react-icons/fi";
 
 import ThemeModeSwitcher from "@/components/common/theme-mode-switcher/theme-mode-switcher";
@@ -22,12 +33,22 @@ const sidebarRoutes: Record<string, string> = {
 };
 
 const menuItems: MenuProps["items"] = [
-  { key: "dashboard", label: "Dashboard" },
-  { key: "inventory", label: "Inventory" },
-  { key: "transactions", label: "Transactions" },
-  { key: "settings", label: "Settings" },
-  { key: "customers", label: "Customers", disabled: true },
-  { key: "report", label: "Report", disabled: true },
+  { key: "dashboard", label: "Dashboard", icon: <DashboardOutlined /> },
+  { key: "inventory", label: "Inventory", icon: <InboxOutlined /> },
+  { key: "transactions", label: "Transactions", icon: <SwapOutlined /> },
+  { key: "settings", label: "Settings", icon: <SettingOutlined /> },
+  {
+    key: "customers",
+    label: "Customers",
+    icon: <TeamOutlined />,
+    disabled: true,
+  },
+  {
+    key: "report",
+    label: "Report",
+    icon: <BarChartOutlined />,
+    disabled: true,
+  },
 ];
 
 export default function DashboardSidebar({
@@ -36,6 +57,7 @@ export default function DashboardSidebar({
   const router = useRouter();
   const pathname = usePathname();
   const clearAuthSession = useAuthStore((state) => state.clearAuthSession);
+  const [collapsed, setCollapsed] = useState(false);
 
   const resolvedSelectedKey =
     selectedKey ??
@@ -55,8 +77,9 @@ export default function DashboardSidebar({
   return (
     <Sider
       width={240}
-      breakpoint="lg"
       collapsedWidth={72}
+      collapsed={collapsed}
+      onCollapse={(val) => setCollapsed(val)}
       style={{
         minHeight: "100vh",
         height: "100vh",
@@ -64,19 +87,48 @@ export default function DashboardSidebar({
         top: 0,
         insetInlineStart: 0,
         overflow: "hidden",
+        transition: "width 0.2s",
       }}
     >
       <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+        {/* Logo + collapse toggle */}
         <div
-          style={{ padding: "20px 18px", color: "#D6F247", fontWeight: 700 }}
+          style={{
+            padding: "14px 12px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: collapsed ? "center" : "space-between",
+            flexShrink: 0,
+            minHeight: 56,
+          }}
         >
-          vault
+          {!collapsed && (
+            <span
+              style={{
+                color: "#D6F247",
+                fontWeight: 700,
+                fontSize: 16,
+                letterSpacing: 1,
+              }}
+            >
+              vault
+            </span>
+          )}
+          <Button
+            type="text"
+            size="small"
+            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+            onClick={() => setCollapsed((c) => !c)}
+            style={{ color: "rgba(255,255,255,0.55)", flexShrink: 0 }}
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+          />
         </div>
         <Menu
           mode="inline"
           theme="dark"
           selectedKeys={[resolvedSelectedKey]}
           items={menuItems}
+          inlineCollapsed={collapsed}
           onClick={function onClickMenuItem({ key }) {
             const route = sidebarRoutes[String(key)];
 
@@ -95,21 +147,36 @@ export default function DashboardSidebar({
             padding: "12px 10px 16px",
           }}
         >
-          <Button
-            type="text"
-            icon={<FiLogOut size={16} />}
-            onClick={handleLogout}
-            style={{
-              color: "rgba(255,255,255,0.9)",
-              width: "100%",
-              maxWidth: 132,
-              border: "1px solid rgba(255,255,255,0.12)",
-              background: "rgba(255,255,255,0.04)",
-              borderRadius: 999,
-            }}
-          >
-            Logout
-          </Button>
+          {collapsed ? (
+            <Tooltip title="Logout" placement="right">
+              <Button
+                type="text"
+                icon={<FiLogOut size={16} />}
+                onClick={handleLogout}
+                style={{
+                  color: "rgba(255,255,255,0.9)",
+                  width: 44,
+                  height: 44,
+                }}
+              />
+            </Tooltip>
+          ) : (
+            <Button
+              type="text"
+              icon={<FiLogOut size={16} />}
+              onClick={handleLogout}
+              style={{
+                color: "rgba(255,255,255,0.9)",
+                width: "100%",
+                maxWidth: 132,
+                border: "1px solid rgba(255,255,255,0.12)",
+                background: "rgba(255,255,255,0.04)",
+                borderRadius: 999,
+              }}
+            >
+              Logout
+            </Button>
+          )}
           <div
             style={{
               display: "flex",
@@ -126,7 +193,7 @@ export default function DashboardSidebar({
                 display: "flex",
                 justifyContent: "center",
                 alignItems: "center",
-                minWidth: 132,
+                minWidth: collapsed ? 0 : 132,
               }}
             >
               <ThemeModeSwitcher />

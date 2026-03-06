@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import { useCallback, useRef } from "react";
 import { FloatButton, Layout, theme } from "antd";
-import { MessageOutlined, CloseOutlined } from "@ant-design/icons";
+import { MessageOutlined } from "@ant-design/icons";
 
 import ProtectedRouteGuard from "@/components/auth/common/protected-route-guard/protected-route-guard";
 import DashboardSidebar from "@/components/dashboard/layout/dashboard-sidebar/dashboard-sidebar";
@@ -148,20 +148,21 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
           </div>
         </div>
 
-        {/* Floating chat toggle button — shifts left of the chat panel */}
-        <FloatButton
-          icon={isOpen ? <CloseOutlined /> : <MessageOutlined />}
-          type={isOpen ? "primary" : "default"}
-          tooltip={isOpen ? "Close chat" : "Open AI assistant"}
-          onClick={toggleChat}
-          style={{
-            position: "fixed",
-            bottom: 28,
-            right: (isOpen ? panelWidth : 0) + 20,
-            transition: "right 0.2s ease",
-            zIndex: 1000,
-          }}
-        />
+        {/* Floating chat button — only when chat is closed */}
+        {!isOpen ? (
+          <FloatButton
+            icon={<MessageOutlined />}
+            type="default"
+            tooltip="Open AI assistant"
+            onClick={toggleChat}
+            style={{
+              position: "fixed",
+              bottom: 28,
+              right: 20,
+              zIndex: 1000,
+            }}
+          />
+        ) : null}
       </Layout>
     </ProtectedRouteGuard>
   );

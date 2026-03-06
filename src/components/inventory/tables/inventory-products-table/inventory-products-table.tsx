@@ -72,6 +72,7 @@ export default function InventoryProductsTable({
         dataSource={loading ? [] : data}
         loading={false}
         pagination={{ pageSize: 10, showSizeChanger: false }}
+        scroll={{ x: "max-content" }}
         style={{ marginTop: 12 }}
         locale={{
           emptyText: loading ? (

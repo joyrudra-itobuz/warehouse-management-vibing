@@ -1,17 +1,12 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Col, Empty, Flex, Row } from "antd";
+import { Empty, Flex } from "antd";
 
 import { useChatStore } from "@/stores/chat";
 
-import DashboardCategoryChart from "@/components/dashboard/charts/dashboard-category-chart/dashboard-category-chart";
-import DashboardComparisonChart from "@/components/dashboard/charts/dashboard-comparison-chart/dashboard-comparison-chart";
-import DashboardIssuesChart from "@/components/dashboard/charts/dashboard-issues-chart/dashboard-issues-chart";
+import DashboardGrid from "@/components/dashboard/dashboard-grid/dashboard-grid";
 import DashboardTopbar from "@/components/dashboard/layout/dashboard-topbar/dashboard-topbar";
-import DashboardStatCard from "@/components/dashboard/widgets/dashboard-stat-card/dashboard-stat-card";
-import DashboardLowStockTable from "@/components/dashboard/tables/dashboard-low-stock-table/dashboard-low-stock-table";
-import DashboardTopProductsTable from "@/components/dashboard/tables/dashboard-top-products-table/dashboard-top-products-table";
 import useAppQuery from "@/hooks/common/use-app-query/use-app-query";
 import { dashboardRoutes } from "@/lib/apis/routes";
 import type {
@@ -456,65 +451,17 @@ export default function DashboardPageContent() {
         onChangeWarehouse={handleWarehouseChange}
       />
 
-      <Row gutter={[16, 16]}>
-        <Col xs={24} md={12} xl={6}>
-          <DashboardStatCard
-            title="Total Sales"
-            value={`$${stats.totalSales.toLocaleString()}`}
-            trend={`${stats.saleQuantity} qty`}
-            highlighted
-            loading={statsQuery.isLoading}
-          />
-        </Col>
-        <Col xs={24} md={12} xl={6}>
-          <DashboardStatCard
-            title="Total Purchase"
-            value={`$${stats.totalPurchase.toLocaleString()}`}
-            trend={`${stats.purchaseQuantity} qty`}
-            loading={statsQuery.isLoading}
-          />
-        </Col>
-        <Col xs={24} md={12} xl={6}>
-          <DashboardStatCard
-            title="Inventory Quantity"
-            value={stats.inventoryQuantity}
-            trend="Current stock"
-            loading={statsQuery.isLoading}
-          />
-        </Col>
-        <Col xs={24} md={12} xl={6}>
-          <DashboardStatCard
-            title="Today's Shipment"
-            value={stats.todayShipmentQuantity}
-            trend="Today"
-            loading={statsQuery.isLoading}
-          />
-        </Col>
-      </Row>
-
-      <Row gutter={[16, 16]} style={{ marginTop: 12 }}>
-        <Col xs={24} xl={14}>
-          <DashboardCategoryChart data={categoryData} />
-        </Col>
-        <Col xs={24} xl={10}>
-          <DashboardComparisonChart data={comparisonData} />
-        </Col>
-        <Col xs={24} xl={14}>
-          <DashboardIssuesChart data={issueSeriesData} />
-        </Col>
-        <Col xs={24} xl={14}>
-          <DashboardTopProductsTable
-            data={topSellingRows}
-            loading={topSellingQuery.isLoading}
-          />
-        </Col>
-        <Col xs={24} xl={10}>
-          <DashboardLowStockTable
-            data={lowStockRows}
-            loading={lowStockQuery.isLoading}
-          />
-        </Col>
-      </Row>
+      <DashboardGrid
+        stats={stats}
+        statsLoading={statsQuery.isLoading}
+        categoryData={categoryData}
+        comparisonData={comparisonData}
+        issueSeriesData={issueSeriesData}
+        topSellingRows={topSellingRows}
+        topSellingLoading={topSellingQuery.isLoading}
+        lowStockRows={lowStockRows}
+        lowStockLoading={lowStockQuery.isLoading}
+      />
     </>
   );
 }
