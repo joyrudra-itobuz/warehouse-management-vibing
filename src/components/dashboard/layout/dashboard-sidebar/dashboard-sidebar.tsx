@@ -1,12 +1,14 @@
 "use client";
 
-import { Button, Layout, Menu } from "antd";
+import { Button, Layout, Menu, Tooltip } from "antd";
 import type { MenuProps } from "antd";
+import { RobotOutlined } from "@ant-design/icons";
 import { usePathname, useRouter } from "next/navigation";
 import { FiLogOut } from "react-icons/fi";
 
 import ThemeModeSwitcher from "@/components/common/theme-mode-switcher/theme-mode-switcher";
 import { useAuthStore } from "@/stores/auth";
+import { useChatStore } from "@/stores/chat";
 
 const { Sider } = Layout;
 
@@ -36,6 +38,8 @@ export default function DashboardSidebar({
   const router = useRouter();
   const pathname = usePathname();
   const clearAuthSession = useAuthStore((state) => state.clearAuthSession);
+  const toggleChat = useChatStore((state) => state.toggleChat);
+  const isChatOpen = useChatStore((state) => state.isOpen);
 
   const resolvedSelectedKey =
     selectedKey ??
@@ -97,6 +101,32 @@ export default function DashboardSidebar({
             padding: "12px 10px 16px",
           }}
         >
+          {/* AI Chat toggle */}
+          <Tooltip
+            title={isChatOpen ? "Close AI assistant" : "Open AI assistant"}
+            placement="right"
+          >
+            <Button
+              type="text"
+              icon={<RobotOutlined size={16} />}
+              onClick={toggleChat}
+              style={{
+                color: isChatOpen ? "#1677ff" : "rgba(255,255,255,0.9)",
+                width: "100%",
+                maxWidth: 132,
+                border: isChatOpen
+                  ? "1px solid rgba(22,119,255,0.5)"
+                  : "1px solid rgba(255,255,255,0.12)",
+                background: isChatOpen
+                  ? "rgba(22,119,255,0.15)"
+                  : "rgba(255,255,255,0.04)",
+                borderRadius: 999,
+              }}
+            >
+              AI Chat
+            </Button>
+          </Tooltip>
+
           <Button
             type="text"
             icon={<FiLogOut size={16} />}
