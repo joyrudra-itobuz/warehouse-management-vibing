@@ -1,6 +1,7 @@
 import { useCallback, useRef } from "react";
 
 import chatRoutes from "@/lib/apis/routes/chat-routes";
+import { parseMarkdownResponse } from "@/lib/utils/common/parse-markdown-response/parse-markdown-response";
 import { useChatStore } from "@/stores/chat";
 import type { ChatMessageDto } from "@/types/apis/chat/chat-types/chat-types";
 
@@ -55,6 +56,7 @@ export function useChatStream() {
 
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
+        let accumulated = "";
 
         while (true) {
           const { value, done } = await reader.read();
@@ -64,10 +66,12 @@ export function useChatStream() {
           }
 
           const chunk = decoder.decode(value, { stream: true });
+          accumulated += chunk;
           appendStreamingChunk(chunk);
         }
 
-        finalizeStreaming();
+        const parsed = parseMarkdownResponse(accumulated) ?? undefined;
+        finalizeStreaming(parsed);
       } catch (err) {
         if ((err as Error).name === "AbortError") {
           finalizeStreaming();

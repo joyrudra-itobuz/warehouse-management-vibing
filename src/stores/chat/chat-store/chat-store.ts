@@ -1,7 +1,6 @@
 import { create } from "zustand";
 
 import type {
-  ChatActions,
   ChatState,
   ChatStore,
   ChatUIMessage,
@@ -61,6 +60,10 @@ export const useChatStore = create<ChatStore>()((set) => ({
 
   pushMessage: (msg: ChatUIMessage) => {
     set((state) => ({ messages: [...state.messages, msg] }));
+  },
+
+  setMessages: (msgs: ChatUIMessage[]) => {
+    set({ messages: msgs });
   },
 
   updateLastAssistantMessage: (content: string) => {

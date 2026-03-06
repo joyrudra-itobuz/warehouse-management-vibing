@@ -2,8 +2,8 @@
 
 import type { ReactNode } from "react";
 import { useCallback, useRef } from "react";
-import { Button, Layout, theme, Tooltip } from "antd";
-import { MessageOutlined } from "@ant-design/icons";
+import { FloatButton, Layout, theme } from "antd";
+import { MessageOutlined, CloseOutlined } from "@ant-design/icons";
 
 import ProtectedRouteGuard from "@/components/auth/common/protected-route-guard/protected-route-guard";
 import DashboardSidebar from "@/components/dashboard/layout/dashboard-sidebar/dashboard-sidebar";
@@ -83,35 +83,6 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
             flexDirection: "column",
           }}
         >
-          {/* Global top navbar */}
-          <div
-            style={{
-              height: 48,
-              flexShrink: 0,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "flex-end",
-              padding: "0 20px",
-              borderBottom: `1px solid ${token.colorBorderSecondary}`,
-              background: token.colorBgContainer,
-              gap: 8,
-            }}
-          >
-            <Tooltip
-              title={isOpen ? "Close chat" : "Open AI chat"}
-              placement="bottom"
-            >
-              <Button
-                type={isOpen ? "primary" : "default"}
-                icon={<MessageOutlined />}
-                onClick={toggleChat}
-                size="small"
-              >
-                Chat
-              </Button>
-            </Tooltip>
-          </div>
-
           {/* Scrollable page content */}
           <Content
             style={{
@@ -176,6 +147,21 @@ export default function ProtectedLayout({ children }: ProtectedLayoutProps) {
             <ChatSidebar />
           </div>
         </div>
+
+        {/* Floating chat toggle button — shifts left of the chat panel */}
+        <FloatButton
+          icon={isOpen ? <CloseOutlined /> : <MessageOutlined />}
+          type={isOpen ? "primary" : "default"}
+          tooltip={isOpen ? "Close chat" : "Open AI assistant"}
+          onClick={toggleChat}
+          style={{
+            position: "fixed",
+            bottom: 28,
+            right: (isOpen ? panelWidth : 0) + 20,
+            transition: "right 0.2s ease",
+            zIndex: 1000,
+          }}
+        />
       </Layout>
     </ProtectedRouteGuard>
   );

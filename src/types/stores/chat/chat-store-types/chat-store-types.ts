@@ -26,6 +26,7 @@ export type ChatActions = {
   setActiveSession: (id: string | null) => void;
   setWarehouseId: (id: string | null) => void;
   pushMessage: (msg: ChatUIMessage) => void;
+  setMessages: (msgs: ChatUIMessage[]) => void;
   updateLastAssistantMessage: (content: string) => void;
   setIsStreaming: (v: boolean) => void;
   setStreamingContent: (text: string) => void;
