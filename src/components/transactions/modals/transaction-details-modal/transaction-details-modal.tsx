@@ -103,7 +103,11 @@ export default function TransactionDetailsModal({
             bordered
             column={2}
             size="small"
-            labelStyle={{ width: 140 }}
+            styles={{
+              label: {
+                width: 140,
+              },
+            }}
           >
             <Descriptions.Item label="Type">
               <Tag>{transaction.type}</Tag>

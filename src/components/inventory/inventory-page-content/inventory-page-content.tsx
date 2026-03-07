@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import { Empty, Tabs } from "antd";
 import type { TabsProps } from "antd";
-import type { UploadFile } from "antd/es/upload/interface";
 import { useQueryClient } from "@tanstack/react-query";
 
 import InventoryTopbar from "@/components/inventory/layout/inventory-topbar/inventory-topbar";
@@ -19,6 +18,7 @@ import type {
   InventoryProductDetails,
   InventoryProductRow,
   InventoryProductUpdatePayload,
+  ProductVariant,
   WarehouseItem,
 } from "@/types/apis/inventory/inventory-response-types/inventory-response-types";
 
@@ -75,55 +75,6 @@ function toNumber(value: unknown): number {
   return 0;
 }
 
-function fileToDataUrl(file: File): Promise<string> {
-  return new Promise(function resolveFileToDataUrl(resolve, reject) {
-    const reader = new FileReader();
-
-    reader.onload = function onLoad() {
-      if (typeof reader.result === "string") {
-        resolve(reader.result);
-        return;
-      }
-
-      resolve("");
-    };
-
-    reader.onerror = function onError() {
-      reject(new Error("Unable to read file"));
-    };
-
-    reader.readAsDataURL(file);
-  });
-}
-
-async function normalizeProductImages(fileList: UploadFile[] | undefined) {
-  if (!fileList || fileList.length === 0) {
-    return [] as string[];
-  }
-
-  const normalized = await Promise.all(
-    fileList.map(async function mapFile(file) {
-      if (typeof file.url === "string" && file.url.trim()) {
-        return file.url;
-      }
-
-      if (typeof file.thumbUrl === "string" && file.thumbUrl.trim()) {
-        return file.thumbUrl;
-      }
-
-      if (file.originFileObj instanceof File) {
-        return fileToDataUrl(file.originFileObj);
-      }
-
-      return "";
-    }),
-  );
-
-  return normalized.filter(function filterImage(value) {
-    return value.length > 0;
-  });
-}
-
 function extractWarehouses(data: unknown): WarehouseItem[] {
   return toArray(data)
     .map(function mapWarehouse(item, index) {
@@ -161,6 +112,11 @@ function extractInventoryProducts(data: unknown): InventoryProductRow[] {
           : null;
       const source = nestedProduct ?? record;
 
+      // variantCount is provided directly by the API on the product object
+      const variantCount = toNumber(
+        source.variantCount ?? record.variantCount ?? 0,
+      );
+
       return {
         id: String(
           source._id ??
@@ -181,15 +137,50 @@ function extractInventoryProducts(data: unknown): InventoryProductRow[] {
             record.availableQuantity ??
             source.quantity,
         ),
-        price: toNumber(
-          source.price ?? record.price ?? record.sellingPrice ?? 0,
-        ),
+        variantCount,
+        priceRange: null, // populated via the variants detail query when modal opens
         status: Boolean(source.isArchived ?? record.isArchived)
           ? "Archived"
           : "Active",
       };
     })
     .filter(function isProduct(value): value is InventoryProductRow {
+      return value !== null;
+    });
+}
+
+function extractProductVariants(data: unknown): ProductVariant[] {
+  return toArray(data)
+    .map(function mapVariant(item, index) {
+      if (!item || typeof item !== "object") {
+        return null;
+      }
+
+      const record = item as Record<string, unknown>;
+
+      const rawAttributes =
+        record.attributes && typeof record.attributes === "object"
+          ? (record.attributes as Record<string, unknown>)
+          : {};
+
+      const productImage = Array.isArray(record.productImage)
+        ? record.productImage
+            .filter(function filterStr(v) {
+              return typeof v === "string";
+            })
+            .map(String)
+        : [];
+
+      return {
+        id: String(record._id ?? record.id ?? `variant-${index}`),
+        sku: record.sku ? String(record.sku) : undefined,
+        attributes: rawAttributes,
+        price: toNumber(record.price),
+        markup: toNumber(record.markup),
+        productImage,
+      };
+    })
+    .filter(function isVariant(value): value is ProductVariant {
       return value !== null;
     });
 }
@@ -205,30 +196,26 @@ function extractProductDetails(data: unknown): InventoryProductDetails | null {
       ? (record.product as Record<string, unknown>)
       : record;
 
-  const images = Array.isArray(source.productImage)
-    ? source.productImage
-        .filter(function filterImage(value) {
-          return typeof value === "string";
-        })
-        .map(function mapImage(value) {
-          return String(value);
-        })
-    : [];
-
   return {
     id: String(source._id ?? record.productId ?? record._id ?? ""),
     name: String(source.name ?? "Unknown Product"),
     category: String(source.category ?? "Uncategorized"),
     description: String(source.description ?? ""),
-    price: toNumber(source.price),
-    markup: toNumber(source.markup),
+    brand: source.brand ? String(source.brand) : undefined,
+    label: source.label ? String(source.label) : undefined,
+    variantAttributes:
+      source.variantAttributes &&
+      typeof source.variantAttributes === "object" &&
+      !Array.isArray(source.variantAttributes)
+        ? (source.variantAttributes as Record<string, unknown>)
+        : undefined,
     isArchived: Boolean(source.isArchived ?? record.isArchived),
-    quantity: toNumber(record.quantity),
-    limit: toNumber(record.limit),
+    quantity: toNumber(record.quantity) || undefined,
+    limit: toNumber(record.limit) || undefined,
     status: Boolean(source.isArchived ?? record.isArchived)
       ? "Archived"
       : "Active",
-    images,
+    variants: [],
   };
 }
 
@@ -312,6 +299,18 @@ export default function InventoryPageContent() {
     },
   );
 
+  const productVariantsQuery = useAppQuery<
+    InventoryApiEnvelope<unknown>,
+    Error
+  >({
+    queryKey: ["inventory", "product-variants", selectedProductId],
+    queryFn: function queryProductVariants() {
+      return inventoryRoutes.getProductVariants(selectedProductId as string);
+    },
+    enabled: Boolean(selectedProductId),
+    errorMessage: "Unable to load product variants.",
+  });
+
   const updateProductMutation = useAppMutation<
     InventoryApiEnvelope<unknown>,
     Error,
@@ -350,17 +349,12 @@ export default function InventoryPageContent() {
       return;
     }
 
-    const productImage = await normalizeProductImages(values.productImages);
-
     const payload: InventoryProductUpdatePayload = {
       id: selectedProductId,
       name: values.name,
       category: values.category,
       description: values.description,
-      price: toNumber(values.price),
-      markup: toNumber(values.markup),
       isArchived: Boolean(values.isArchived),
-      productImage,
     };
 
     updateProductMutation.mutate(
@@ -397,6 +391,9 @@ export default function InventoryPageContent() {
   );
   const selectedProductDetails = extractProductDetails(
     productDetailsQuery.data?.data,
+  );
+  const selectedProductVariants = extractProductVariants(
+    productVariantsQuery.data?.data,
   );
 
   const tabItems: TabsProps["items"] = [
@@ -465,6 +462,8 @@ export default function InventoryPageContent() {
         loading={productDetailsQuery.isLoading}
         submitting={updateProductMutation.isPending}
         product={selectedProductDetails}
+        variants={selectedProductVariants}
+        variantsLoading={productVariantsQuery.isLoading}
         onSubmit={handleSubmitProduct}
       />
     </>

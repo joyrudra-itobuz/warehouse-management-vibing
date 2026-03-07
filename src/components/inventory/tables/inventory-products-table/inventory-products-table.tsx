@@ -38,11 +38,20 @@ const columns: ColumnsType<InventoryProductRow> = [
     key: "quantity",
   },
   {
-    title: "Price",
-    dataIndex: "price",
-    key: "price",
-    render: function renderPrice(value: number) {
-      return `$${value.toLocaleString()}`;
+    title: "Variants",
+    key: "variants",
+    render: function renderVariants(_: unknown, record: InventoryProductRow) {
+      if (record.variantCount === 0) {
+        return <Text type="secondary">—</Text>;
+      }
+
+      return (
+        <Tag color="blue">
+          {record.variantCount === 1
+            ? "1 variant"
+            : `${record.variantCount} variants`}
+        </Tag>
+      );
     },
   },
   {

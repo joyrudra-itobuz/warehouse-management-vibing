@@ -81,6 +81,13 @@ function getWarehouses() {
   });
 }
 
+function getProductVariants(productId: string) {
+  return request<InventoryApiEnvelope<unknown>>({
+    path: `/variant/product/${productId}`,
+    method: "GET",
+  });
+}
+
 const inventoryRoutes = {
   getAllProducts,
   getArchivedProducts,
@@ -88,6 +95,7 @@ const inventoryRoutes = {
   getProductDetails,
   updateProduct,
   getWarehouses,
+  getProductVariants,
 };
 
 export default inventoryRoutes;

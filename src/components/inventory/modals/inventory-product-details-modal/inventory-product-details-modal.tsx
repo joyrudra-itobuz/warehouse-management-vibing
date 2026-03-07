@@ -7,22 +7,25 @@ import {
   Form,
   Image,
   Input,
-  InputNumber,
   Modal,
   Row,
   Skeleton,
   Space,
   Switch,
+  Table,
   Tabs,
   Tag,
+  Tooltip,
   Typography,
-  Upload,
 } from "antd";
-import type { UploadFile } from "antd/es/upload/interface";
+import type { ColumnsType } from "antd/es/table";
 import { useEffect, useState } from "react";
 
 import AccentSkeletonThemeProvider from "@/components/common/accent-skeleton-theme-provider/accent-skeleton-theme-provider";
-import type { InventoryProductDetails } from "@/types/apis/inventory/inventory-response-types/inventory-response-types";
+import type {
+  InventoryProductDetails,
+  ProductVariant,
+} from "@/types/apis/inventory/inventory-response-types/inventory-response-types";
 
 const { TextArea } = Input;
 const { Text } = Typography;
@@ -31,10 +34,7 @@ export type InventoryProductFormValues = {
   name: string;
   category: string;
   description?: string;
-  price: number;
-  markup?: number;
   isArchived?: boolean;
-  productImages?: UploadFile[];
 };
 
 type InventoryProductDetailsModalProps = {
@@ -43,8 +43,107 @@ type InventoryProductDetailsModalProps = {
   loading?: boolean;
   submitting?: boolean;
   product: InventoryProductDetails | null;
+  variants: ProductVariant[];
+  variantsLoading: boolean;
   onSubmit: (values: InventoryProductFormValues) => void;
 };
+
+function formatAttributes(attributes: Record<string, unknown>): string {
+  return Object.entries(attributes)
+    .map(function mapEntry([key, value]) {
+      return `${key}: ${String(value)}`;
+    })
+    .join(", ");
+}
+
+const variantColumns: ColumnsType<ProductVariant> = [
+  {
+    title: "Attributes",
+    key: "attributes",
+    render: function renderAttributes(_: unknown, record: ProductVariant) {
+      const entries = Object.entries(record.attributes);
+
+      if (entries.length === 0) {
+        return <Text type="secondary">—</Text>;
+      }
+
+      return (
+        <Space size={4} wrap>
+          {entries.map(function mapAttr([key, value]) {
+            return (
+              <Tooltip key={key} title={key}>
+                <Tag style={{ cursor: "default" }}>{String(value)}</Tag>
+              </Tooltip>
+            );
+          })}
+        </Space>
+      );
+    },
+  },
+  {
+    title: "SKU",
+    dataIndex: "sku",
+    key: "sku",
+    render: function renderSku(value: string | undefined) {
+      return value ? (
+        <Text code style={{ fontSize: 12 }}>
+          {value}
+        </Text>
+      ) : (
+        <Text type="secondary">—</Text>
+      );
+    },
+  },
+  {
+    title: "Price",
+    dataIndex: "price",
+    key: "price",
+    render: function renderPrice(value: number) {
+      return `$${value.toLocaleString()}`;
+    },
+  },
+  {
+    title: "Markup",
+    dataIndex: "markup",
+    key: "markup",
+    render: function renderMarkup(value: number) {
+      return value ? `${value}%` : "—";
+    },
+  },
+  {
+    title: "Images",
+    key: "images",
+    render: function renderImages(_: unknown, record: ProductVariant) {
+      if (!record.productImage || record.productImage.length === 0) {
+        return <Text type="secondary">—</Text>;
+      }
+
+      return (
+        <Image.PreviewGroup>
+          <Space size={6}>
+            {record.productImage.slice(0, 3).map(function mapImg(img, idx) {
+              return (
+                <Image
+                  key={`${record.id}-img-${idx}`}
+                  src={img}
+                  width={40}
+                  height={40}
+                  style={{ borderRadius: 6, objectFit: "cover" }}
+                  alt={`Variant image ${idx + 1}`}
+                />
+              );
+            })}
+            {record.productImage.length > 3 && (
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                +{record.productImage.length - 3}
+              </Text>
+            )}
+          </Space>
+        </Image.PreviewGroup>
+      );
+    },
+  },
+];
 
 export default function InventoryProductDetailsModal({
   open,
@@ -52,6 +151,8 @@ export default function InventoryProductDetailsModal({
   loading,
   submitting,
   product,
+  variants,
+  variantsLoading,
   onSubmit,
 }: InventoryProductDetailsModalProps) {
   const [form] = Form.useForm<InventoryProductFormValues>();
@@ -67,25 +168,11 @@ export default function InventoryProductDetailsModal({
         name: product.name,
         category: product.category,
         description: product.description,
-        price: product.price,
-        markup: product.markup,
         isArchived: product.isArchived,
-        productImages: product.images.map(function mapImage(image, index) {
-          return {
-            uid: `existing-${index}`,
-            name: `image-${index + 1}`,
-            status: "done",
-            url: image,
-          } as UploadFile;
-        }),
       });
     },
     [form, open, product],
   );
-
-  const normFile = function normFile(event: { fileList?: UploadFile[] }) {
-    return event?.fileList ?? [];
-  };
 
   const loadingSkeleton = (
     <AccentSkeletonThemeProvider>
@@ -99,13 +186,12 @@ export default function InventoryProductDetailsModal({
               <Skeleton.Input active block style={{ height: 36 }} />
               <Skeleton.Input active block style={{ height: 36 }} />
               <Skeleton.Input active block style={{ height: 36 }} />
-              <Skeleton.Input active block style={{ height: 36 }} />
             </Space>
           </Col>
           <Col xs={24} md={10}>
             <Space orientation="vertical" size={10} style={{ width: "100%" }}>
-              <Skeleton.Image active style={{ width: "100%", height: 132 }} />
-              <Skeleton.Image active style={{ width: "100%", height: 132 }} />
+              <Skeleton.Input active block style={{ height: 120 }} />
+              <Skeleton.Input active block style={{ height: 120 }} />
             </Space>
           </Col>
         </Row>
@@ -128,7 +214,7 @@ export default function InventoryProductDetailsModal({
       okButtonProps={{
         style: { display: tabKey === "edit" ? "inline-flex" : "none" },
       }}
-      width={860}
+      width={900}
       destroyOnHidden
       confirmLoading={submitting}
     >
@@ -151,77 +237,117 @@ export default function InventoryProductDetailsModal({
                 key: "preview",
                 label: "Preview",
                 children: (
-                  <Row gutter={[16, 16]} align="top">
-                    <Col xs={24} md={14}>
-                      <Descriptions
-                        bordered
-                        column={1}
-                        size="small"
-                        labelStyle={{ width: 140 }}
+                  <Space
+                    orientation="vertical"
+                    size={20}
+                    style={{ width: "100%" }}
+                  >
+                    <Row gutter={[16, 16]} align="top">
+                      <Col xs={24} md={14}>
+                        <Descriptions
+                          bordered
+                          column={1}
+                          size="small"
+                          styles={{
+                            label: {
+                              width: 140,
+                            },
+                          }}
+                        >
+                          <Descriptions.Item label="Name">
+                            {product.name}
+                          </Descriptions.Item>
+                          <Descriptions.Item label="Category">
+                            <Tag>{product.category}</Tag>
+                          </Descriptions.Item>
+                          {product.brand ? (
+                            <Descriptions.Item label="Brand">
+                              {product.brand}
+                            </Descriptions.Item>
+                          ) : null}
+                          {product.label ? (
+                            <Descriptions.Item label="Label">
+                              {product.label}
+                            </Descriptions.Item>
+                          ) : null}
+                          {product.variantAttributes &&
+                          Object.keys(product.variantAttributes).length > 0 ? (
+                            <Descriptions.Item label="Variant Attrs">
+                              <Text type="secondary" style={{ fontSize: 12 }}>
+                                {formatAttributes(product.variantAttributes)}
+                              </Text>
+                            </Descriptions.Item>
+                          ) : null}
+                          <Descriptions.Item label="Status">
+                            <Text
+                              type={
+                                product.status === "Archived"
+                                  ? "warning"
+                                  : undefined
+                              }
+                            >
+                              {product.status}
+                            </Text>
+                          </Descriptions.Item>
+                          <Descriptions.Item label="Quantity">
+                            {product.quantity ?? "—"}
+                          </Descriptions.Item>
+                          <Descriptions.Item label="Limit">
+                            {product.limit ?? "—"}
+                          </Descriptions.Item>
+                          <Descriptions.Item label="Description">
+                            {product.description || "—"}
+                          </Descriptions.Item>
+                        </Descriptions>
+                      </Col>
+                    </Row>
+
+                    <div>
+                      <Text
+                        strong
+                        style={{ display: "block", marginBottom: 10 }}
                       >
-                        <Descriptions.Item label="Name">
-                          {product.name}
-                        </Descriptions.Item>
-                        <Descriptions.Item label="Category">
-                          <Tag>{product.category}</Tag>
-                        </Descriptions.Item>
-                        <Descriptions.Item label="Price">
-                          ${product.price.toLocaleString()}
-                        </Descriptions.Item>
-                        <Descriptions.Item label="Markup">
-                          {product.markup}%
-                        </Descriptions.Item>
-                        <Descriptions.Item label="Status">
-                          <Text
-                            type={
-                              product.status === "Archived"
-                                ? "warning"
-                                : undefined
-                            }
-                          >
-                            {product.status}
-                          </Text>
-                        </Descriptions.Item>
-                        <Descriptions.Item label="Quantity">
-                          {product.quantity ?? "-"}
-                        </Descriptions.Item>
-                        <Descriptions.Item label="Limit">
-                          {product.limit ?? "-"}
-                        </Descriptions.Item>
-                        <Descriptions.Item label="Description">
-                          {product.description || "-"}
-                        </Descriptions.Item>
-                      </Descriptions>
-                    </Col>
-                    <Col xs={24} md={10}>
-                      {product.images.length > 0 ? (
-                        <Image.PreviewGroup>
+                        Variants
+                        {variants.length > 0 && (
+                          <Tag style={{ marginLeft: 8 }}>{variants.length}</Tag>
+                        )}
+                      </Text>
+                      {variantsLoading ? (
+                        <AccentSkeletonThemeProvider>
                           <Space
                             orientation="vertical"
-                            size={10}
+                            size={8}
                             style={{ width: "100%" }}
                           >
-                            {product.images.map(function mapImage(image) {
+                            {[0, 1, 2].map(function mapSkel(i) {
                               return (
-                                <Image
-                                  key={image}
-                                  src={image}
-                                  alt={product.name}
-                                  width="100%"
-                                  style={{
-                                    borderRadius: 12,
-                                    objectFit: "cover",
-                                  }}
+                                <Skeleton.Input
+                                  key={i}
+                                  active
+                                  block
+                                  style={{ height: 44 }}
                                 />
                               );
                             })}
                           </Space>
-                        </Image.PreviewGroup>
+                        </AccentSkeletonThemeProvider>
+                      ) : variants.length === 0 ? (
+                        <Empty
+                          description="No variants found"
+                          style={{ margin: "12px 0" }}
+                        />
                       ) : (
-                        <Empty description="No product image" />
+                        <Table<ProductVariant>
+                          rowKey="id"
+                          columns={variantColumns}
+                          dataSource={variants}
+                          pagination={false}
+                          size="small"
+                          scroll={{ x: "max-content" }}
+                        />
                       )}
-                    </Col>
-                  </Row>
+                    </div>
+                  </Space>
                 ),
               },
               {
@@ -243,74 +369,25 @@ export default function InventoryProductDetailsModal({
                         <Input placeholder="Product name" />
                       </Form.Item>
                     </Col>
-
                     <Col xs={24} md={12}>
                       <Form.Item
                         label="Category"
                         name="category"
                         rules={[
-                          { required: true, message: "Category is required" },
+                          {
+                            required: true,
+                            message: "Category is required",
+                          },
                         ]}
                       >
                         <Input placeholder="Category" />
                       </Form.Item>
                     </Col>
-
-                    <Col xs={24} md={12}>
-                      <Form.Item
-                        label="Price"
-                        name="price"
-                        rules={[
-                          { required: true, message: "Price is required" },
-                        ]}
-                      >
-                        <InputNumber<number>
-                          min={0}
-                          precision={2}
-                          style={{ width: "100%" }}
-                          placeholder="Price"
-                        />
-                      </Form.Item>
-                    </Col>
-
-                    <Col xs={24} md={12}>
-                      <Form.Item label="Markup (%)" name="markup">
-                        <InputNumber<number>
-                          min={0}
-                          max={100}
-                          precision={2}
-                          style={{ width: "100%" }}
-                          placeholder="Markup"
-                        />
-                      </Form.Item>
-                    </Col>
-
                     <Col xs={24}>
                       <Form.Item label="Description" name="description">
-                        <TextArea rows={3} placeholder="Description" />
+                        <TextArea rows={3} placeholder="Product description" />
                       </Form.Item>
                     </Col>
-
-                    <Col xs={24}>
-                      <Form.Item
-                        label="Product Images"
-                        name="productImages"
-                        valuePropName="fileList"
-                        getValueFromEvent={normFile}
-                        extra="Upload multiple product images"
-                      >
-                        <Upload
-                          listType="picture-card"
-                          multiple
-                          beforeUpload={function blockAutoUpload() {
-                            return false;
-                          }}
-                        >
-                          + Upload
-                        </Upload>
-                      </Form.Item>
-                    </Col>
-
                     <Col xs={24} md={12}>
                       <Form.Item
                         label="Archived"
@@ -319,17 +396,6 @@ export default function InventoryProductDetailsModal({
                       >
                         <Switch />
                       </Form.Item>
-                    </Col>
-
-                    <Col xs={24} md={12}>
-                      <Space size={16} wrap>
-                        <Text type="secondary">
-                          Qty: {product.quantity ?? "-"}
-                        </Text>
-                        <Text type="secondary">
-                          Limit: {product.limit ?? "-"}
-                        </Text>
-                      </Space>
                     </Col>
                   </Row>
                 ),

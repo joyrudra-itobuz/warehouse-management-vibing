@@ -138,6 +138,28 @@
         "tags": ["Auth"]
       }
     },
+    "/user/auth/verify-otp": {
+      "post": {
+        "operationId": "AuthController_verifyOtp",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyOtpDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": ["Auth"]
+      }
+    },
     "/user/auth/forgot-password": {
       "post": {
         "operationId": "AuthController_forgotPassword",
@@ -178,14 +200,7 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object"
-                }
-              }
-            }
+            "description": ""
           }
         },
         "security": [
@@ -777,6 +792,55 @@
         "tags": ["Profile"]
       }
     },
+    "/profile/update-preference": {
+      "patch": {
+        "operationId": "ProfileController_updateNotificationPreferece",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePreferenceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Profile"]
+      }
+    },
+    "/transaction-logs": {
+      "get": {
+        "operationId": "TransactionLogsController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": ["TransactionLogs"]
+      }
+    },
     "/product": {
       "get": {
         "operationId": "ProductsController_getProducts",
@@ -942,37 +1006,6 @@
             }
           },
           {
-            "name": "productImage",
-            "required": false,
-            "in": "path",
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "string",
-                "format": "uri"
-              }
-            }
-          },
-          {
-            "name": "price",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "minimum": 0,
-              "type": "number"
-            }
-          },
-          {
-            "name": "markup",
-            "required": false,
-            "in": "path",
-            "schema": {
-              "minimum": 0,
-              "maximum": 100,
-              "type": "number"
-            }
-          },
-          {
             "name": "isArchived",
             "required": false,
             "in": "path",
@@ -1034,37 +1067,6 @@
             "in": "path",
             "schema": {
               "type": "string"
-            }
-          },
-          {
-            "name": "productImage",
-            "required": false,
-            "in": "path",
-            "schema": {
-              "type": "array",
-              "items": {
-                "type": "string",
-                "format": "uri"
-              }
-            }
-          },
-          {
-            "name": "price",
-            "required": true,
-            "in": "path",
-            "schema": {
-              "minimum": 0,
-              "type": "number"
-            }
-          },
-          {
-            "name": "markup",
-            "required": false,
-            "in": "path",
-            "schema": {
-              "minimum": 0,
-              "maximum": 100,
-              "type": "number"
             }
           },
           {
@@ -1214,6 +1216,56 @@
           }
         ],
         "tags": ["Products"]
+      }
+    },
+    "/variant": {
+      "post": {
+        "operationId": "VariantController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVariantDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": ["Variant"]
+      }
+    },
+    "/variant/product/{id}": {
+      "get": {
+        "operationId": "VariantController_findById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": ["Variant"]
       }
     },
     "/quantity/product-quantity": {
@@ -1464,23 +1516,6 @@
     "/admin/get-managers": {
       "get": {
         "operationId": "AdminController_getManagers",
-        "parameters": [],
-        "responses": {
-          "200": {
-            "description": ""
-          }
-        },
-        "security": [
-          {
-            "bearer": []
-          }
-        ],
-        "tags": ["Admin"]
-      }
-    },
-    "/admin": {
-      "get": {
-        "operationId": "AdminController_isAdmin",
         "parameters": [],
         "responses": {
           "200": {
@@ -2062,7 +2097,16 @@
       },
       "get": {
         "operationId": "SupplierController_getAllSupplier",
-        "parameters": [],
+        "parameters": [
+          {
+            "name": "search",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": ""
@@ -2119,6 +2163,194 @@
           }
         },
         "tags": ["Supplier"]
+      }
+    },
+    "/customer": {
+      "post": {
+        "operationId": "CustomerController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCustomerDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Customer"]
+      },
+      "get": {
+        "operationId": "CustomerController_findAll",
+        "parameters": [
+          {
+            "name": "search",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Customer"]
+      }
+    },
+    "/customer/{id}": {
+      "get": {
+        "operationId": "CustomerController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Customer"]
+      },
+      "patch": {
+        "operationId": "CustomerController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCustomerDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Customer"]
+      },
+      "delete": {
+        "operationId": "CustomerController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": ["Customer"]
+      }
+    },
+    "/batch": {
+      "post": {
+        "operationId": "BatchController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBatchDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "tags": ["Batch"]
+      },
+      "get": {
+        "operationId": "BatchController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": ["Batch"]
+      }
+    },
+    "/batch/{id}": {
+      "get": {
+        "operationId": "BatchController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": ["Batch"]
       }
     }
   },
@@ -2188,7 +2420,7 @@
         },
         "required": ["email"]
       },
-      "ForgotPasswordDto": {
+      "VerifyOtpDto": {
         "type": "object",
         "properties": {
           "email": {
@@ -2197,13 +2429,19 @@
           },
           "otp": {
             "type": "string"
-          },
+          }
+        },
+        "required": ["email", "otp"]
+      },
+      "ForgotPasswordDto": {
+        "type": "object",
+        "properties": {
           "password": {
             "type": "string",
             "pattern": "PASSWORD_REGEX"
           }
         },
-        "required": ["email", "otp", "password"]
+        "required": ["password"]
       },
       "CreateWarehouseDto": {
         "type": "object",
@@ -2264,21 +2502,33 @@
           }
         }
       },
+      "VariantItemDto": {
+        "type": "object",
+        "properties": {
+          "variantId": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "minimum": 1
+          }
+        },
+        "required": ["variantId", "quantity"]
+      },
       "ProductItemDto": {
         "type": "object",
         "properties": {
           "productId": {
             "type": "string"
           },
-          "quantity": {
-            "type": "number",
-            "minimum": 1
-          },
-          "limit": {
-            "type": "number"
+          "variants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VariantItemDto"
+            }
           }
         },
-        "required": ["productId", "quantity"]
+        "required": ["productId", "variants"]
       },
       "StockInDto": {
         "type": "object",
@@ -2375,6 +2625,18 @@
         },
         "required": ["products", "warehouseId", "reason"]
       },
+      "UpdatePreferenceDto": {
+        "type": "object",
+        "properties": {
+          "push": {
+            "type": "boolean"
+          },
+          "email": {
+            "type": "boolean"
+          }
+        },
+        "required": ["push", "email"]
+      },
       "updateProductDto": {
         "type": "object",
         "properties": {
@@ -2390,22 +2652,6 @@
           "description": {
             "type": "string"
           },
-          "productImage": {
-            "type": "array",
-            "items": {
-              "type": "string",
-              "format": "uri"
-            }
-          },
-          "price": {
-            "type": "number",
-            "minimum": 0
-          },
-          "markup": {
-            "type": "number",
-            "minimum": 0,
-            "maximum": 100
-          },
           "isArchived": {
             "type": "boolean"
           },
@@ -2413,7 +2659,7 @@
             "type": "string"
           }
         },
-        "required": ["id", "name", "category", "price"]
+        "required": ["id", "name", "category"]
       },
       "CreateProductDto": {
         "type": "object",
@@ -2446,11 +2692,51 @@
           "isArchived": {
             "type": "boolean"
           },
-          "createdBy": {
+          "brand": {
             "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "variantAttributes": {
+            "type": "object"
           }
         },
-        "required": ["name", "category", "price", "createdBy"]
+        "required": [
+          "name",
+          "category",
+          "price",
+          "brand",
+          "label",
+          "variantAttributes"
+        ]
+      },
+      "CreateVariantDto": {
+        "type": "object",
+        "properties": {
+          "product": {
+            "type": "string"
+          },
+          "attributes": {
+            "type": "object"
+          },
+          "productImage": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "price": {
+            "type": "number",
+            "minimum": 0
+          },
+          "markup": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          }
+        },
+        "required": ["product", "price"]
       },
       "ObjectId": {
         "type": "object",
@@ -2555,6 +2841,83 @@
             "type": "boolean"
           }
         }
+      },
+      "CreateCustomerDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "address": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        }
+      },
+      "UpdateCustomerDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "address": {
+            "type": "string"
+          },
+          "phoneNumber": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CreateBatchItemDto": {
+        "type": "object",
+        "properties": {
+          "variant": {
+            "type": "string"
+          },
+          "quantity": {
+            "type": "number",
+            "minimum": 1
+          },
+          "limit": {
+            "type": "number"
+          }
+        },
+        "required": ["variant", "quantity"]
+      },
+      "CreateBatchDto": {
+        "type": "object",
+        "properties": {
+          "sourceWarehouse": {
+            "type": "string"
+          },
+          "destinationWarehouse": {
+            "type": "string"
+          },
+          "items": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateBatchItemDto"
+            }
+          }
+        },
+        "required": ["items"]
       }
     }
   }

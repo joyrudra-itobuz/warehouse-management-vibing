@@ -26,12 +26,22 @@ export type WarehouseItem = {
   name: string;
 };
 
+export type ProductVariant = {
+  id: string;
+  sku?: string;
+  attributes: Record<string, unknown>;
+  price: number;
+  markup: number;
+  productImage: string[];
+};
+
 export type InventoryProductRow = {
   id: string;
   name: string;
   category: string;
   quantity: number;
-  price: number;
+  variantCount: number;
+  priceRange: { min: number; max: number } | null;
   status: string;
 };
 
@@ -40,13 +50,14 @@ export type InventoryProductDetails = {
   name: string;
   category: string;
   description: string;
-  price: number;
-  markup: number;
+  brand?: string;
+  label?: string;
+  variantAttributes?: Record<string, unknown>;
   isArchived: boolean;
   quantity?: number;
   limit?: number;
   status: string;
-  images: string[];
+  variants: ProductVariant[];
 };
 
 export type InventoryProductUpdatePayload = {
@@ -54,9 +65,6 @@ export type InventoryProductUpdatePayload = {
   name: string;
   category: string;
   description?: string;
-  productImage?: string[];
-  price: number;
-  markup?: number;
   isArchived?: boolean;
   createdBy?: string;
 };
