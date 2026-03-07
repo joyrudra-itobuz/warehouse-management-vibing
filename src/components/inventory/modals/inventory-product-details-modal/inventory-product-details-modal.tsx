@@ -129,7 +129,7 @@ export default function InventoryProductDetailsModal({
         style: { display: tabKey === "edit" ? "inline-flex" : "none" },
       }}
       width={860}
-      destroyOnClose
+      destroyOnHidden
       confirmLoading={submitting}
     >
       {loading && !product ? (

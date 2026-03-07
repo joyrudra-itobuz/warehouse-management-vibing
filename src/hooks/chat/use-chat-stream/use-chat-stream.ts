@@ -89,6 +89,7 @@ export function useChatStream() {
         const decoder = new TextDecoder();
         let accumulated = "";
         let sessionResolved = !!headerSessionId;
+        let isFirstChunk = true;
 
         while (true) {
           const { value, done } = await reader.read();
@@ -97,21 +98,32 @@ export function useChatStream() {
             break;
           }
 
-          const chunk = decoder.decode(value, { stream: true });
-          accumulated += chunk;
-          appendStreamingChunk(chunk);
+          let chunk = decoder.decode(value, { stream: true });
 
-          // Check all new lines in this chunk for an embedded session ID
-          if (!sessionResolved) {
-            for (const line of chunk.split("\n")) {
-              const sid = extractSessionIdFromLine(line);
-              if (sid) {
+          // On the very first chunk, check whether the leading line is the
+          // session-ID envelope: {"sessionId":"<id>"}
+          // If so: extract the ID, strip that line from the chunk so it is
+          // never rendered in the bubble.
+          if (isFirstChunk) {
+            isFirstChunk = false;
+            const newlineIdx = chunk.indexOf("\n");
+            const firstLine =
+              newlineIdx === -1 ? chunk : chunk.slice(0, newlineIdx);
+            const sid = extractSessionIdFromLine(firstLine);
+            if (sid) {
+              if (!sessionResolved) {
                 setActiveSession(sid);
                 sessionResolved = true;
-                break;
               }
+              // Drop the session-ID line (and its trailing newline)
+              chunk = newlineIdx === -1 ? "" : chunk.slice(newlineIdx + 1);
             }
           }
+
+          if (!chunk) continue;
+
+          accumulated += chunk;
+          appendStreamingChunk(chunk);
 
           // Progressive parse: format the bubble as data arrives
           // Only attempt when the accumulated text has a section heading

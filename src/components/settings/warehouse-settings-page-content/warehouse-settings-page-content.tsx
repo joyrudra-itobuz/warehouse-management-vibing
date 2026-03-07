@@ -306,7 +306,7 @@ export default function WarehouseSettingsPageContent() {
                   bordered
                   size="small"
                   column={1}
-                  labelStyle={{ width: 190 }}
+                  styles={{ label: { width: 190 } }}
                 >
                   <Descriptions.Item label="Name">
                     {warehouse.name}

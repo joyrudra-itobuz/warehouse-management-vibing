@@ -74,7 +74,7 @@ export default function TransactionDetailsModal({
       footer={null}
       title="Transaction Details"
       width={860}
-      destroyOnClose
+      destroyOnHidden
     >
       {loading || !transaction ? (
         loadingSkeleton
